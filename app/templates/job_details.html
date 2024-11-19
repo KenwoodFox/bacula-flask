@@ -36,7 +36,9 @@
             <td>{{ job.level }}</td>
             <td>{{ job.job_files }}</td>
             <td>{{ job.job_bytes }}</td>
-            <td>{{ job.job_status }}</td>
+            <td class="{% if job.job_status != 'T' %}flashing-error{% endif %}">
+                {{ job.job_status }}
+            </td>
             <td>
                 {% for volume in job.volumes %}
                 <a href="/volume/{{ volume }}">{{ volume }}</a>{% if not loop.last %}, {% endif %}

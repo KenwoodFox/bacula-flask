@@ -38,14 +38,14 @@ def job_details(job_name):
     """
     Displays the history of a specific job, including volumes used and time skips.
     """
-    job_output = run_bconsole_command(f"list jobs job={job_name}")
+    job_output = run_bconsole_command(f"list job={job_name}")
     job_history = parse_list_jobs(job_output)
 
     # Process the job history to include time skips
-    processed_job_history = process_job_history(job_history)
+    # job_history = process_job_history(job_history) # Fix me later
 
     return render_template(
-        "job_details.html", job_name=job_name, job_history=processed_job_history
+        "job_details.html", job_name=job_name, job_history=job_history
     )
 
 
