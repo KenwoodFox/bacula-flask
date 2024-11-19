@@ -1,5 +1,34 @@
 import subprocess
 import shlex
+from datetime import datetime
+
+
+def human_readable_bytes(size_in_bytes: str):
+    """
+    Converts a size in bytes to a human-readable format (KB, MB, GB, TB).
+
+    :param size_in_bytes: The size in bytes. (can be 123,456)
+    :return: A string representing the size in a human-readable format.
+    """
+
+    try:
+        # Remove commas and convert to a float
+        size_in_bytes = float(str(size_in_bytes).replace(",", ""))
+    except ValueError:
+        return "Invalid size"
+
+    if size_in_bytes == 0:
+        return "0 B"
+
+    units = ["B", "KB", "MB", "GB", "TB", "PB", "EB"]
+    i = 0
+    size = size_in_bytes
+
+    while size >= 1024 and i < len(units) - 1:
+        size /= 1024
+        i += 1
+
+    return f"{size:.2f} {units[i]}"
 
 
 def run_bconsole_command(cmd, timeout=10):
@@ -47,17 +76,18 @@ def parse_list_jobs(output):
             fields = [field.strip() for field in line.split("|") if field.strip()]
             jobs.append(
                 {
-                    "jobid": fields[0],
+                    "job_id": fields[0],
                     "name": fields[1],
-                    "starttime": fields[2],
+                    "start_time": datetime.strptime(fields[2], "%Y-%m-%d %H:%M:%S"),
                     "type": fields[3],
                     "level": fields[4],
-                    "jobfiles": fields[5],
-                    "jobbytes": fields[6],
-                    "jobstatus": fields[7],
+                    "job_files": fields[5],
+                    "job_bytes": human_readable_bytes(fields[6]),
+                    "job_status": fields[7],
                 }
             )
-    return jobs
+
+    return sorted(jobs, key=lambda x: x["start_time"], reverse=True)
 
 
 def parse_show_jobs(output):
@@ -121,18 +151,79 @@ def parse_show_jobs(output):
     return jobs
 
 
-def merge_job_data(configured_jobs, recent_jobs):
+def parse_volume_details(output):
     """
-    Merges configured jobs with recent job details.
+    Parses the output of a volume details command to extract relevant info.
+
+    :param output: Raw output from the `list volume=<volume_id>` command.
+    :return: A dictionary with volume details.
     """
+    volume_info = {}
+    for line in output.splitlines():
+        if ":" in line:
+            key, value = line.split(":", 1)
+            volume_info[key.strip()] = value.strip()
+    return volume_info
+
+
+def parse_jobtotals(output):
+    """
+    Parses the output of `list jobtotals` to extract total bytes for each job.
+
+    :param output: Raw output from the `list jobtotals` command.
+    :return: A dictionary mapping job names to their total job bytes and files.
+    """
+
+    job_totals = {}
+
+    lines = output.splitlines()
+    for line in lines:
+        # Skip header or separator lines
+        if line.startswith("+") or "jobs" in line.lower():
+            continue
+
+        # Parse job data
+        fields = [field.strip() for field in line.split("|") if field.strip()]
+        if len(fields) == 4:  # Ensure the line contains expected columns
+            job_totals[fields[3]] = {
+                "total_jobs": int(fields[0]),
+                "total_files": int(fields[1].replace(",", "")),
+                "total_bytes": int(fields[2].replace(",", "")),
+            }
+
+    return job_totals
+
+
+def merge_job_data(configured_jobs, recent_jobs, job_totals={}):
+    """
+    Merges configured jobs with recent job details and sorts them by most recent run time.
+    """
+
     for job in configured_jobs:
         for recent_job in recent_jobs:
             if job["name"] == recent_job["name"]:
                 job.update(
                     {
-                        "last_run_time": recent_job["starttime"],
-                        "job_status": recent_job["jobstatus"],
-                        "job_bytes": recent_job["jobbytes"],
+                        "last_run_time": recent_job["start_time"],
+                        "job_status": recent_job["job_status"],
+                        "job_bytes": recent_job["job_bytes"],
                     }
                 )
-    return configured_jobs
+
+        # Add job totals
+        if job["name"] in job_totals:
+            job.update(
+                {
+                    "total_jobs": job_totals[job["name"]]["total_jobs"],
+                    "total_files": job_totals[job["name"]]["total_files"],
+                    "total_bytes": human_readable_bytes(
+                        job_totals[job["name"]]["total_bytes"]
+                    ),
+                }
+            )
+
+    return sorted(
+        configured_jobs,
+        key=lambda x: x.get("last_run_time", datetime.min),
+        reverse=True,
+    )

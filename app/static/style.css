@@ -1,0 +1,35 @@
+body {
+  font-family: "Courier New", Courier, monospace;
+  background-color: black;
+  color: green;
+  text-align: center;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
+table {
+  margin: auto;
+  border-collapse: collapse;
+  width: 80%;
+}
+
+table th,
+table td {
+  border: 1px solid green;
+  padding: 10px;
+  text-align: center;
+}
+
+h1 {
+  margin: 20px 0;
+}
+
+a {
+  color: lime;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Job Details - {{ job_name }}{% endblock %}
+
+{% block content %}
+<h1>Job History for {{ job_name }}</h1>
+
+<div class="back-link">
+    <a href="{{ url_for('main.index') }}"><- Back</a>
+</div>
+
+<table border="2">
+    <thead>
+        <tr>
+            <th>Job ID</th>
+            <th>Start Time</th>
+            <th>Level</th>
+            <th>Files</th>
+            <th>Bytes</th>
+            <th>Status</th>
+            <th>Volumes</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for job in job_history %}
+        <tr>
+            <td>{{ job.job_id }}</td>
+            <td>{{ job.start_time }}</td>
+            <td>{{ job.level }}</td>
+            <td>{{ job.job_files }}</td>
+            <td>{{ job.job_bytes }}</td>
+            <td>{{ job.job_status }}</td>
+            <td>
+                {% for volume in job.volumes %}
+                <a href="/volume/{{ volume }}">{{ volume }}</a>{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

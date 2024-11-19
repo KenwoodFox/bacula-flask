@@ -1,36 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bacula Jobs</title>
-</head>
+{% block title %}Bacula Jobs{% endblock %}
 
-<body>
-    <h1>Configured Jobs</h1>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Job Name</th>
-                <th>Total Job Bytes</th>
-                <th>Last Job Status</th>
-                <th>Last Run Time</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for job in jobs %}
-            <tr>
-                <td>{{ job.name }}</td>
-                <td>{{ job.job_bytes or "N/A" }}</td>
-                <td>{{ job.job_status or "N/A" }}</td>
-                <td>{{ job.last_run_time or "N/A" }}</td>
-                <td><a href="/job/{{ job.name }}">View Details</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
+{% block content %}
+<h1>Bacula Job Status and History</h1>
+<table border="2">
+    <thead>
+        <tr>
+            <th>Job Name</th>
+            <th>Total Job Bytes</th>
+            <th>Last Job Status</th>
+            <th>Last Run Time</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for job in jobs %}
+        <tr>
+            <td>{{ job.name }}</td>
+            <td>{{ job.total_bytes or "N/A" }}</td>
+            <td>{{ job.job_status or "N/A" }}</td>
+            <td>{{ job.last_run_time or "N/A" }}</td>
+            <td><a href="/job/{{ job.name }}">View Details</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-</html>
+{% endblock %}
