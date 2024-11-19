@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bacula Job List</title>
+</head>
+<body>
+    <h1>Job List</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Job ID</th>
+                <th>Name</th>
+                <th>Start Time</th>
+                <th>Type</th>
+                <th>Level</th>
+                <th>Job Files</th>
+                <th>Job Bytes</th>
+                <th>Job Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td><a href="/job/{{ job.jobid }}">{{ job.jobid }}</a></td>
+                <td>{{ job.name }}</td>
+                <td>{{ job.starttime }}</td>
+                <td>{{ job.type }}</td>
+                <td>{{ job.level }}</td>
+                <td>{{ job.jobfiles }}</td>
+                <td>{{ job.jobbytes }}</td>
+                <td>{{ job.jobstatus }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
