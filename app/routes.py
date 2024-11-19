@@ -7,6 +7,7 @@ from .utils import (
     parse_jobtotals,
 )
 from .process_job_history import process_job_history
+from .time import format_timestamp
 
 bp = Blueprint("main", __name__)
 
@@ -20,7 +21,7 @@ def index():
     configured_jobs = parse_show_jobs(show_jobs_output)
 
     # Get recent job run details
-    list_jobs_output = run_bconsole_command("list jobs days=10")
+    list_jobs_output = run_bconsole_command("list jobs days=25")
     recent_jobs = parse_list_jobs(list_jobs_output)
 
     # Get job totals
@@ -29,6 +30,13 @@ def index():
 
     # Merge data
     jobs = merge_job_data(configured_jobs, recent_jobs, job_totals)
+
+    # Format timestamps
+    for job in jobs:
+        try:
+            job["formatted_time"] = format_timestamp(job["last_run_time"])
+        except KeyError:
+            job["formatted_time"] = "N/A"
 
     # For now, set a static percentage for testing
     for job in jobs:

@@ -25,7 +25,7 @@
             <td class="{% if job.job_status != 'T' %}flashing-error{% endif %}">
                 {{ job.job_status }}
             </td>
-            <td>{{ job.last_run_time or "N/A" }}</td>
+            <td>{{ job.formatted_time or "N/A" }}</td>
             <td><a href="/job/{{ job.name }}">View Details</a></td>
         </tr>
         {% endfor %}

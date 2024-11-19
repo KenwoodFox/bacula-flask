@@ -233,18 +233,28 @@ def get_volumes_for_job(jobid):
 def merge_job_data(configured_jobs, recent_jobs, job_totals={}):
     """
     Merges configured jobs with recent job details and sorts them by most recent run time.
+
+    :param configured_jobs: List of configured jobs.
+    :param recent_jobs: List of recent job runs.
+    :param job_totals: Dictionary of job totals.
+    :return: Sorted list of merged jobs.
     """
 
     for job in configured_jobs:
         for recent_job in recent_jobs:
             if job["name"] == recent_job["name"]:
-                job.update(
-                    {
-                        "last_run_time": recent_job["start_time"],
-                        "job_status": recent_job["job_status"],
-                        "job_bytes": recent_job["job_bytes"],
-                    }
-                )
+                # Check if last_run_time is more recent before updating
+                if (
+                    "last_run_time" not in job
+                    or recent_job["start_time"] > job["last_run_time"]
+                ):
+                    job.update(
+                        {
+                            "last_run_time": recent_job["start_time"],
+                            "job_status": recent_job["job_status"],
+                            "job_bytes": recent_job["job_bytes"],
+                        }
+                    )
 
         # Add job totals
         if job["name"] in job_totals:
@@ -258,6 +268,7 @@ def merge_job_data(configured_jobs, recent_jobs, job_totals={}):
                 }
             )
 
+    # Sort jobs by most recent last_run_time
     return sorted(
         configured_jobs,
         key=lambda x: x.get("last_run_time", datetime.min),
