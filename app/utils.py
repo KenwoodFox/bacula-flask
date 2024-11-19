@@ -169,30 +169,44 @@ def parse_volume_details(output):
 
 def parse_jobtotals(output):
     """
-    Parses the output of `list jobtotals` to extract total bytes for each job.
+    Parses the output of `list jobtotals` to extract total bytes for each job and overall totals.
 
     :param output: Raw output from the `list jobtotals` command.
-    :return: A dictionary mapping job names to their total job bytes and files.
+    :return: A tuple with:
+        - A dictionary mapping job names to their total job bytes and files.
+        - A dictionary containing overall summary totals for all jobs.
     """
 
     job_totals = {}
+    summary_totals = {}
 
     lines = output.splitlines()
     for line in lines:
         # Skip header or separator lines
-        if line.startswith("+") or "jobs" in line.lower():
+        if line.startswith("+"):
             continue
 
         # Parse job data
         fields = [field.strip() for field in line.split("|") if field.strip()]
-        if len(fields) == 4:  # Ensure the line contains expected columns
-            job_totals[fields[3]] = {
-                "total_jobs": int(fields[0]),
-                "total_files": int(fields[1].replace(",", "")),
-                "total_bytes": int(fields[2].replace(",", "")),
-            }
 
-    return job_totals
+        print(fields)
+
+        if len(fields) == 4:  # Ensure the line contains expected columns
+            if "jobs" not in fields[0].lower():  # Skip summary header row
+                job_totals[fields[3]] = {
+                    "total_jobs": int(fields[0]),
+                    "total_files": int(fields[1].replace(",", "")),
+                    "total_bytes": int(fields[2].replace(",", "")),
+                }
+        elif len(fields) == 3:  # Parse summary totals at the bottom
+            if "jobs" not in fields[0].lower():  # Skip summary header row
+                summary_totals = {
+                    "total_jobs": int(fields[0].replace(",", "")),
+                    "total_files": int(fields[1].replace(",", "")),
+                    "total_bytes": int(fields[2].replace(",", "")),
+                }
+
+    return job_totals, summary_totals
 
 
 def get_volumes_for_job(jobid):

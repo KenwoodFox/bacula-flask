@@ -18,7 +18,10 @@
         {% for job in jobs %}
         <tr>
             <td>{{ job.name }}</td>
-            <td>{{ job.total_bytes or "N/A" }}</td>
+            <td
+                style="background: linear-gradient(to right, yellow {{ job.percentage }}%, transparent {{ job.percentage }}%);">
+                {{ job.total_bytes }}
+            </td>
             <td class="{% if job.job_status != 'T' %}flashing-error{% endif %}">
                 {{ job.job_status }}
             </td>

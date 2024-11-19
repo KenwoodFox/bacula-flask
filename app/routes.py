@@ -25,10 +25,21 @@ def index():
 
     # Get job totals
     jobtotals_output = run_bconsole_command("list jobtotals")
-    job_totals = parse_jobtotals(jobtotals_output)
+    job_totals, summary_totals = parse_jobtotals(jobtotals_output)
 
     # Merge data
     jobs = merge_job_data(configured_jobs, recent_jobs, job_totals)
+
+    # For now, set a static percentage for testing
+    for job in jobs:
+        try:
+            # print(job_totals[job["name"]])
+            jobdata = job_totals[job["name"]]
+            job["percentage"] = (
+                jobdata["total_bytes"] / summary_totals["total_bytes"]
+            ) * 100
+        except KeyError:
+            job["percentage"] = 0
 
     return render_template("index.html", jobs=jobs)
 
