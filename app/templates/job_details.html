@@ -23,9 +23,16 @@
     </thead>
     <tbody>
         {% for job in job_history %}
+        {% if job.time_skip %}
+        <tr>
+            <td colspan="7" style="text-align: center;">
+                {{ job.skip_start }} ... {{ job.skip_end }} ({{ job.skipped_jobs }} empty jobs skipped)
+            </td>
+        </tr>
+        {% else %}
         <tr>
             <td>{{ job.job_id }}</td>
-            <td>{{ job.start_time }}</td>
+            <td>{{ job.start_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
             <td>{{ job.level }}</td>
             <td>{{ job.job_files }}</td>
             <td>{{ job.job_bytes }}</td>
@@ -36,6 +43,7 @@
                 {% endfor %}
             </td>
         </tr>
+        {% endif %}
         {% endfor %}
     </tbody>
 </table>

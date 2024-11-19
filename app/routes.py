@@ -6,8 +6,11 @@ from .utils import (
     merge_job_data,
     parse_jobtotals,
 )
+from .process_job_history import process_job_history
 
 bp = Blueprint("main", __name__)
+
+DAYS_TO_LIST = 360
 
 
 @bp.route("/")
@@ -24,8 +27,6 @@ def index():
     jobtotals_output = run_bconsole_command("list jobtotals")
     job_totals = parse_jobtotals(jobtotals_output)
 
-    print(job_totals)
-
     # Merge data
     jobs = merge_job_data(configured_jobs, recent_jobs, job_totals)
 
@@ -35,17 +36,16 @@ def index():
 @bp.route("/job/<job_name>")
 def job_details(job_name):
     """
-    Displays the history of a specific job, including volumes used.
+    Displays the history of a specific job, including volumes used and time skips.
     """
+    job_output = run_bconsole_command(f"list jobs job={job_name}")
+    job_history = parse_list_jobs(job_output)
 
-    # Run the `list jobs job=<name>` command
-    command_output = run_bconsole_command(f"list jobs job={job_name}")
-    job_history = parse_list_jobs(command_output)
-
-    print(job_history)
+    # Process the job history to include time skips
+    processed_job_history = process_job_history(job_history)
 
     return render_template(
-        "job_details.html", job_name=job_name, job_history=job_history
+        "job_details.html", job_name=job_name, job_history=processed_job_history
     )
 
 

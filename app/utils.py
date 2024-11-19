@@ -84,6 +84,7 @@ def parse_list_jobs(output):
                     "job_files": fields[5],
                     "job_bytes": human_readable_bytes(fields[6]),
                     "job_status": fields[7],
+                    "volumes": [],
                 }
             )
 
@@ -192,6 +193,27 @@ def parse_jobtotals(output):
             }
 
     return job_totals
+
+
+def get_volumes_for_job(jobid):
+    """
+    Runs `list volumes jobid=<jobid>` to extract the volumes used by the job.
+
+    :param jobid: The job ID to query.
+    :return: A list of volumes used by the job.
+    """
+
+    command = f"list volumes jobid={jobid}"
+    output = run_bconsole_command(command)
+
+    # Parse the output
+    volumes = []
+    for line in output.splitlines():
+        if "Volume(s):" in line:
+            # Extract volumes after 'Volume(s):'
+            volumes = [vol.strip() for vol in line.split(":")[1].split(",")]
+
+    return volumes
 
 
 def merge_job_data(configured_jobs, recent_jobs, job_totals={}):
