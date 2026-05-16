@@ -1,0 +1,145 @@
+from .db import get_connection
+from .utils import human_readable_bytes, job_row_to_dict
+
+
+def fetch_dashboard_jobs():
+    """Job names with totals and most recent run, for the index page."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                WITH latest AS (
+                    SELECT DISTINCT ON (name)
+                        name, jobstatus, starttime
+                    FROM job
+                    ORDER BY name, starttime DESC
+                ),
+                totals AS (
+                    SELECT
+                        name,
+                        COUNT(*)::int AS total_jobs,
+                        COALESCE(SUM(jobfiles), 0)::bigint AS total_files,
+                        COALESCE(SUM(jobbytes), 0)::bigint AS total_bytes
+                    FROM job
+                    GROUP BY name
+                )
+                SELECT
+                    t.name,
+                    t.total_jobs,
+                    t.total_files,
+                    t.total_bytes,
+                    l.jobstatus,
+                    l.starttime AS last_run_time
+                FROM totals t
+                LEFT JOIN latest l ON l.name = t.name
+                ORDER BY l.starttime DESC NULLS LAST
+                """
+            )
+            jobs = cur.fetchall()
+
+            cur.execute("SELECT COALESCE(SUM(jobbytes), 0)::bigint AS total_bytes FROM job")
+            summary = cur.fetchone()
+
+    summary_bytes = summary["total_bytes"] or 0
+    result = []
+    for row in jobs:
+        total_bytes = row["total_bytes"] or 0
+        result.append(
+            {
+                "name": row["name"],
+                "total_jobs": row["total_jobs"],
+                "total_files": row["total_files"],
+                "total_bytes": human_readable_bytes(total_bytes),
+                "job_status": row["jobstatus"],
+                "last_run_time": row["last_run_time"],
+                "percentage": (total_bytes / summary_bytes * 100) if summary_bytes else 0,
+            }
+        )
+    return result
+
+
+def fetch_job_history(job_name, limit=1000):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    j.jobid,
+                    j.name,
+                    j.starttime,
+                    j.type,
+                    j.level,
+                    j.jobfiles,
+                    j.jobbytes,
+                    j.jobstatus,
+                    COALESCE(
+                        array_agg(DISTINCT m.volumename)
+                            FILTER (WHERE m.volumename IS NOT NULL),
+                        '{}'
+                    ) AS volumes
+                FROM job j
+                LEFT JOIN jobmedia jm ON jm.jobid = j.jobid
+                LEFT JOIN media m ON m.mediaid = jm.mediaid
+                WHERE j.name = %s
+                GROUP BY
+                    j.jobid, j.name, j.starttime, j.type, j.level,
+                    j.jobfiles, j.jobbytes, j.jobstatus
+                ORDER BY j.starttime DESC
+                LIMIT %s
+                """,
+                (job_name, limit),
+            )
+            rows = cur.fetchall()
+
+    return [job_row_to_dict(row) for row in rows]
+
+
+def fetch_volume(volumename):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    m.mediaid,
+                    m.volumename,
+                    m.slot,
+                    m.mediatype,
+                    m.firstwritten,
+                    m.lastwritten,
+                    m.labeldate,
+                    m.volstatus,
+                    m.volfiles,
+                    m.volbytes,
+                    m.volerrors,
+                    m.volwritetime,
+                    m.volretention,
+                    m.enabled,
+                    p.name AS pool
+                FROM media m
+                LEFT JOIN pool p ON p.poolid = m.poolid
+                WHERE m.volumename = %s
+                """,
+                (volumename,),
+            )
+            row = cur.fetchone()
+
+    if not row:
+        return None
+
+    return {
+        "Media ID": row["mediaid"],
+        "Volume": row["volumename"],
+        "Pool": row["pool"],
+        "Slot": row["slot"],
+        "Media Type": row["mediatype"],
+        "First Written": row["firstwritten"],
+        "Last Written": row["lastwritten"],
+        "Label Date": row["labeldate"],
+        "Status": row["volstatus"],
+        "Files": row["volfiles"],
+        "Bytes": human_readable_bytes(row["volbytes"] or 0),
+        "Errors": row["volerrors"],
+        "Write Time": row["volwritetime"],
+        "Retention": row["volretention"],
+        "Enabled": row["enabled"],
+    }

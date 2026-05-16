@@ -8,9 +8,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Install and configure bconsole
-RUN apt update && apt install bacula-console -y
-
 # Copy the app code to the container
 COPY . .
 
@@ -20,10 +17,6 @@ EXPOSE 5000
 # Bake the git commit into the env
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
-
-# Healthcheck to ensure the service is up
-# HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-#     CMD curl --fail http://localhost:5000/ || exit 1
 
 # Run Gunicorn without virtual environment
 ENTRYPOINT ["gunicorn", "-b", "0.0.0.0:5000", "-w", "4", "-t", "120", "wsgi:app"]
