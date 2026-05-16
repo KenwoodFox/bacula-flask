@@ -3,7 +3,24 @@
 {% block title %}Volume Details - {{ volume_id }}{% endblock %}
 
 {% block content %}
+<nav class="site-nav">
+    <a href="{{ url_for('main.index') }}">Jobs</a>
+    <span class="nav-sep">|</span>
+    <a href="{{ url_for('main.media_vault') }}">Vault</a>
+</nav>
+
+<div class="volume-label-hero">
+    <img class="volume-label-img"
+        src="{{ url_for('main.vault_barcode_png', volumename=volume_id, w=480, h=120) }}"
+        alt="{{ volume_id }}" width="480" height="120">
+</div>
+
 <h1>Details for Volume {{ volume_id }}</h1>
+
+<div class="back-link">
+    <a href="{{ url_for('main.media_vault') }}"><- Back to vault</a>
+</div>
+
 <table border="2">
     <tbody>
         {% for key, value in volume_info.items() %}

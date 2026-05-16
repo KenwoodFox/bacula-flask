@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Tape Vault{% endblock %}
+
+{% block content %}
+<nav class="site-nav">
+    <a href="{{ url_for('main.index') }}">Jobs</a>
+    <span class="nav-sep">|</span>
+    <strong>Vault</strong>
+</nav>
+
+<h1>Tape Vault</h1>
+<p class="vault-hint">Each block is a tape volume! I plan to update this to show by autochanger position but, for now, by pool.</p>
+
+{% for pool in pools %}
+<section class="pool-vault">
+    <h2 class="pool-title">{{ pool.name }} <span class="pool-count">({{ pool.media|length }})</span></h2>
+    <div class="tape-shelf" style="--shelf-cols: {{ shelf_cols }};">
+        {% for tape in pool.media %}
+        <a href="{{ url_for('main.volume_details', volume_id=tape.volumename) }}"
+            class="tape-cell status-{{ tape.status_class }}"
+            title="Slot {{ tape.slot or '—' }} · {{ tape.volbytes }}">
+            <img class="tape-barcode" src="{{ url_for('main.vault_barcode_png', volumename=tape.volumename) }}"
+                alt="{{ tape.volumename }}" loading="lazy" onerror="this.style.display='none'">
+            <span class="tape-name">{{ tape.volumename }}</span>
+            <div class="tape-footer">
+                <span class="tape-slot">{% if tape.slot %}{{ tape.slot }}{% endif %}</span>
+                <span class="tape-meta">{{ tape.volstatus }} · {{ tape.volbytes }}</span>
+            </div>
+        </a>
+        {% else %}
+        <p class="pool-empty">No media in this pool.</p>
+        {% endfor %}
+    </div>
+</section>
+{% else %}
+<p>No media in the catalog yet.</p>
+{% endfor %}
+
+{% endblock %}

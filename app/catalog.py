@@ -1,5 +1,23 @@
+import re
+
 from .db import get_connection
 from .utils import human_readable_bytes, job_row_to_dict
+
+
+def _volstatus_class(volstatus: str | None) -> str:
+    raw = (volstatus or "unknown").strip().lower()
+    aliases = {
+        "a": "append",
+        "append": "append",
+        "appended": "append",
+        "purged": "purged",
+        "recycle": "recycle",
+        "recycled": "recycle",
+    }
+    if raw in aliases:
+        return aliases[raw]
+    slug = re.sub(r"[^a-z0-9]+", "-", raw).strip("-")
+    return slug or "unknown"
 
 
 def fetch_dashboard_jobs():
@@ -92,6 +110,102 @@ def fetch_job_history(job_name, limit=1000):
             rows = cur.fetchall()
 
     return [job_row_to_dict(row) for row in rows]
+
+
+def fetch_media_by_pool():
+    """All volumes grouped by pool, ordered for shelf-style display."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    p.poolid,
+                    p.name AS pool_name,
+                    m.mediaid,
+                    m.volumename,
+                    m.slot,
+                    m.volstatus,
+                    m.volbytes,
+                    m.lastwritten,
+                    m.mediatype
+                FROM media m
+                LEFT JOIN pool p ON p.poolid = m.poolid
+                ORDER BY
+                    p.name NULLS LAST,
+                    NULLIF(
+                        regexp_replace(COALESCE(m.slot::text, ''), '[^0-9]', '', 'g'),
+                        ''
+                    )::int,
+                    m.slot::text,
+                    m.volumename
+                """
+            )
+            rows = cur.fetchall()
+
+    pools = []
+    pool_index = {}
+
+    for row in rows:
+        pool_key = row["poolid"]
+        pool_name = row["pool_name"] or "Unassigned"
+
+        if pool_key not in pool_index:
+            pool_index[pool_key] = len(pools)
+            pools.append(
+                {
+                    "pool_id": pool_key,
+                    "name": pool_name,
+                    "media": [],
+                }
+            )
+
+        pools[pool_index[pool_key]]["media"].append(
+            {
+                "mediaid": row["mediaid"],
+                "volumename": row["volumename"],
+                "slot": row["slot"] or "",
+                "volstatus": row["volstatus"] or "",
+                "status_class": _volstatus_class(row["volstatus"]),
+                "volbytes": human_readable_bytes(row["volbytes"] or 0),
+                "lastwritten": row["lastwritten"],
+                "mediatype": row["mediatype"] or "",
+            }
+        )
+
+    return pools
+
+
+def fetch_volumes_for_labels(pool_name=None):
+    """(volumename, pool_name) pairs for label generation."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            if pool_name:
+                cur.execute(
+                    """
+                    SELECT m.volumename, p.name AS pool_name
+                    FROM media m
+                    LEFT JOIN pool p ON p.poolid = m.poolid
+                    WHERE p.name = %s
+                    ORDER BY
+                        NULLIF(
+                            regexp_replace(COALESCE(m.slot::text, ''), '[^0-9]', '', 'g'),
+                            ''
+                        )::int,
+                        m.slot::text,
+                        m.volumename
+                    """,
+                    (pool_name,),
+                )
+            else:
+                cur.execute(
+                    """
+                    SELECT m.volumename, p.name AS pool_name
+                    FROM media m
+                    LEFT JOIN pool p ON p.poolid = m.poolid
+                    ORDER BY p.name, m.volumename
+                    """
+                )
+            return [(r["volumename"], r["pool_name"]) for r in cur.fetchall()]
 
 
 def fetch_volume(volumename):

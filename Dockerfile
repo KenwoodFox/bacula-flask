@@ -6,7 +6,9 @@ WORKDIR /app
 
 # Copy requirements.txt and install dependencies globally
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt \
+    && apt-get update && apt-get install -y --no-install-recommends fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy the app code to the container
 COPY . .

@@ -8,8 +8,10 @@ flask = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 python-dotenv = "*"
+pillow = "*"
+python-barcode = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.12"
+python_version = "3.14"
