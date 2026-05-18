@@ -11,9 +11,21 @@
 
 <h1>Tape Vault</h1>
 
+{% if standalone_drives %}
+<section class="vault-drives">
+    <h2 class="pool-title">Standalone</h2>
+    {% with drives=standalone_drives %}
+    {% include "_drive_section.html" %}
+    {% endwith %}
+</section>
+{% endif %}
+
 {% if show_library %}
 <section class="library-vault">
-    <h2 class="pool-title">Library <span class="pool-count">(by slot)</span></h2>
+    <h2 class="pool-title">Autochanger</h2>
+    {% with drives=autochanger_drives %}
+    {% include "_drive_section.html" %}
+    {% endwith %}
     <div class="library-grid">
         {% for row in library_grid %}
         {% for cell in row %}
@@ -27,8 +39,6 @@
             {% endwith %}
             {% elif cell.kind == 'tape' %}
             <div class="lib-empty-tape">empty</div>
-            {% elif cell.kind == 'drive' %}
-            <div class="lib-empty-tape lib-empty-drive">empty</div>
             {% endif %}
         </div>
         {% endif %}

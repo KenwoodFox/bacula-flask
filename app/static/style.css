@@ -305,16 +305,32 @@ td[data-percentage] {
   margin-bottom: 1rem;
 }
 
+.vault-drives,
 .library-vault {
+  --vault-cols: 8;
+  --vault-gap: 0.35rem;
+  --vault-slot: calc(
+    (100% - (var(--vault-cols) - 1) * var(--vault-gap)) / var(--vault-cols)
+  );
+  --vault-drive: calc(var(--vault-slot) * 1.5);
   margin: 1.5rem auto 0;
   max-width: 98%;
+}
+
+.vault-drives-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
 }
 
 .library-grid {
   display: grid;
   grid-template-columns: repeat(8, minmax(5.5rem, 1fr));
-  grid-template-rows: auto repeat(3, auto);
-  gap: 0.35rem;
+  grid-template-rows: repeat(3, auto);
+  gap: var(--vault-gap);
 }
 
 .lib-cell {
@@ -350,8 +366,10 @@ td[data-percentage] {
   background: #001525;
   padding-top: 1rem;
   min-height: 7.5rem;
-  width: 75%;
-  justify-self: center;
+  width: var(--vault-drive, calc(5.5rem * 1.5));
+  min-width: calc(5.5rem * 1.5);
+  flex: 0 0 auto;
+  box-sizing: border-box;
 }
 
 .lib-drive .lib-label {

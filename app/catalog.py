@@ -163,7 +163,7 @@ def fetch_media_by_pool():
             {
                 "mediaid": row["mediaid"],
                 "volumename": row["volumename"],
-                "slot": row["slot"] or "",
+                "slot": "" if row["slot"] is None else str(row["slot"]).strip(),
                 "volstatus": row["volstatus"] or "",
                 "status_class": _volstatus_class(row["volstatus"]),
                 "volbytes": human_readable_bytes(row["volbytes"] or 0),

@@ -1,68 +1,94 @@
-"""2U library slot grid — drive on top, magazines below."""
+"""2U library slot grid and drive bays."""
 
-import re
+from .vault_config import all_drive_names
 
-# slot number -> (row, col)   row 0 = drive, rows 1-3 = magazines
+# storage slot number -> (row, col)
 SLOT_POS = {
-    8: (1, 0),
-    9: (1, 1),
-    10: (1, 2),
-    11: (1, 3),
-    4: (2, 0),
-    5: (2, 1),
-    6: (2, 2),
-    7: (2, 3),
-    1: (3, 1),
-    2: (3, 2),
-    3: (3, 3),
-    23: (1, 4),
-    22: (1, 5),
-    21: (1, 6),
-    20: (1, 7),
-    19: (2, 4),
-    18: (2, 5),
-    17: (2, 6),
-    16: (2, 7),
-    15: (3, 4),
-    14: (3, 5),
-    13: (3, 6),
-    12: (3, 7),
+    8: (0, 0),
+    9: (0, 1),
+    10: (0, 2),
+    11: (0, 3),
+    4: (1, 0),
+    5: (1, 1),
+    6: (1, 2),
+    7: (1, 3),
+    1: (2, 1),
+    2: (2, 2),
+    3: (2, 3),
+    23: (0, 4),
+    22: (0, 5),
+    21: (0, 6),
+    20: (0, 7),
+    19: (1, 4),
+    18: (1, 5),
+    17: (1, 6),
+    16: (1, 7),
+    15: (2, 4),
+    14: (2, 5),
+    13: (2, 6),
+    12: (2, 7),
 }
 
 
-def parse_slot(slot):
-    """Return int slot, 'drive', or None."""
+def _slot_text(slot):
     if slot is None or slot == "":
-        return None
-    text = str(slot).strip()
-    if "drive" in text.lower():
-        return "drive"
-    digits = re.sub(r"[^0-9]", "", text)
-    if digits:
-        return int(digits)
+        return ""
+    return str(slot).strip()
+
+
+def tape_matches_drive_name(tape, drive_name):
+    """Match drive name against media.volumename or media.slot."""
+    key = drive_name.lower()
+    vol = (tape.get("volumename") or "").lower()
+    slot = _slot_text(tape.get("slot")).lower()
+    return key in vol or vol == key or key in slot or slot == key
+
+
+def tape_drive_name(tape):
+    for name in all_drive_names():
+        if tape_matches_drive_name(tape, name):
+            return name
     return None
 
 
+def build_drives(tapes, names):
+    """Drive bays for a name list: [{name, tape}, ...]."""
+    return [
+        {
+            "name": name,
+            "tape": next(
+                (t for t in tapes if tape_matches_drive_name(t, name)),
+                None,
+            ),
+        }
+        for name in names
+        if name
+    ]
+
+
+def parse_slot(slot):
+    """Return int magazine slot number, or None."""
+    text = _slot_text(slot)
+    if not text or not text.isdigit():
+        return None
+    return int(text)
+
+
 def build_library_grid(tapes):
-    """4×8 grid: drive row on top, then left + right magazines."""
+    """3×8 magazine grid."""
     by_slot = {}
-    drive_tape = None
     for tape in tapes:
+        if tape_drive_name(tape):
+            continue
         key = parse_slot(tape.get("slot"))
-        if key == "drive":
-            drive_tape = tape
-        elif isinstance(key, int):
+        if isinstance(key, int):
             by_slot[key] = tape
 
     grid = []
-
-    # row 0 — drive ~1.5 slots wide, centered (spans 2 cols, styled at 75% width)
-    grid.append([_cell(0, 3, "drive", label="Drive", tape=drive_tape, colspan=2)])
-
-    for row in range(1, 4):
+    for row in range(3):
         line = []
         for col in range(8):
-            if row == 3 and col == 0:
+            if row == 2 and col == 0:
                 line.append(_cell(row, col, "io", label="I/O"))
                 continue
 
