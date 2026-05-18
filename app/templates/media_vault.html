@@ -26,6 +26,7 @@
     {% with drives=autochanger_drives %}
     {% include "_drive_section.html" %}
     {% endwith %}
+    <div class="library-scroll">
     <div class="library-grid">
         {% for row in library_grid %}
         {% for cell in row %}
@@ -44,6 +45,7 @@
         {% endif %}
         {% endfor %}
         {% endfor %}
+    </div>
     </div>
 </section>
 {% endif %}

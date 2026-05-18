@@ -151,7 +151,7 @@ td[data-percentage] {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.8rem;
+  font-size: clamp(0.65rem, 2.8vw, 2.8rem);
   word-break: break-all;
   text-align: center;
   line-height: 1.15;
@@ -326,6 +326,10 @@ td[data-percentage] {
   margin-bottom: 0.5rem;
 }
 
+.library-scroll {
+  width: 100%;
+}
+
 .library-grid {
   display: grid;
   grid-template-columns: repeat(8, minmax(5.5rem, 1fr));
@@ -409,4 +413,143 @@ td[data-percentage] {
   border: 2px solid #00aa00;
   border-radius: 6px;
   background: #fff;
+}
+
+/* --- Vault & jobs: small screens --- */
+@media (max-width: 768px) {
+  h1 {
+    margin: 0.75rem 0;
+    font-size: 1.35rem;
+  }
+
+  .site-nav {
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+  }
+
+  table {
+    width: 100%;
+    font-size: 0.8rem;
+  }
+
+  table th,
+  table td {
+    padding: 6px 4px;
+  }
+
+  .pool-vault,
+  .vault-drives,
+  .library-vault {
+    max-width: 100%;
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
+    box-sizing: border-box;
+  }
+
+  .pool-vault {
+    margin: 1.25rem auto;
+  }
+
+  .tape-shelf {
+    grid-template-columns: repeat(auto-fill, minmax(4.75rem, 1fr));
+    gap: 0.35rem;
+  }
+
+  .tape-cell {
+    min-height: 6.25rem;
+  }
+
+  .tape-barcode {
+    height: 2rem;
+  }
+
+  .tape-footer {
+    flex-wrap: wrap;
+    padding-bottom: 0.25rem;
+  }
+
+  .tape-meta {
+    font-size: 0.55rem;
+  }
+
+  /* Library: keep 8-column layout, pan horizontally */
+  .vault-drives,
+  .library-vault {
+    --vault-slot: 3.25rem;
+    --vault-drive: calc(var(--vault-slot) * 1.5);
+  }
+
+  .library-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #006600 #0a0a0a;
+    padding-bottom: 0.35rem;
+  }
+
+  .library-grid {
+    --vault-gap: 0.25rem;
+    width: max-content;
+    min-width: 100%;
+    grid-template-columns: repeat(8, var(--vault-slot));
+  }
+
+  .library-grid .tape-cell {
+    min-height: 5.25rem;
+  }
+
+  .library-grid .tape-barcode {
+    height: 1.4rem;
+  }
+
+  .library-grid .tape-name {
+    font-size: 0.55rem;
+    padding: 0.15rem 0.2rem;
+  }
+
+  .library-grid .tape-slot,
+  .library-grid .tape-meta {
+    font-size: 0.48rem;
+  }
+
+  .lib-label {
+    font-size: 0.5rem;
+  }
+
+  .lib-io {
+    min-height: 2.75rem;
+    font-size: 0.55rem;
+  }
+
+  .lib-drive {
+    min-height: 6rem;
+  }
+
+  .lib-empty-tape {
+    min-height: 4rem;
+    font-size: 0.55rem;
+  }
+
+  .vault-drives-row .lib-drive {
+    width: var(--vault-drive);
+    min-width: var(--vault-drive);
+  }
+}
+
+@media (max-width: 420px) {
+  .vault-drives-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.35rem;
+  }
+
+  .vault-drives-row .lib-drive {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .tape-shelf {
+    grid-template-columns: repeat(auto-fill, minmax(4.25rem, 1fr));
+  }
 }
