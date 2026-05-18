@@ -9,6 +9,7 @@ from .catalog import (
     fetch_volume,
     fetch_volumes_for_labels,
 )
+from .library_layout import build_library_grid, has_slotted_tapes
 from .labels import (
     build_tape_label,
     build_tape_label_sheet,
@@ -47,10 +48,16 @@ def index():
 @bp.route("/vault")
 def media_vault():
     pools = fetch_media_by_pool()
+    all_tapes = [tape for pool in pools for tape in pool["media"]]
+    show_library = has_slotted_tapes(all_tapes)
+    library_grid = build_library_grid(all_tapes) if show_library else []
+
     return render_template(
         "media_vault.html",
         pools=pools,
         shelf_cols=SHELF_COLS,
+        library_grid=library_grid,
+        show_library=show_library,
     )
 
 

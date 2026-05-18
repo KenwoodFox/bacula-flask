@@ -10,31 +10,50 @@
 </nav>
 
 <h1>Tape Vault</h1>
-<p class="vault-hint">Each block is a tape volume! I plan to update this to show by autochanger position but, for now, by pool.</p>
 
-{% for pool in pools %}
-<section class="pool-vault">
-    <h2 class="pool-title">{{ pool.name }} <span class="pool-count">({{ pool.media|length }})</span></h2>
-    <div class="tape-shelf" style="--shelf-cols: {{ shelf_cols }};">
-        {% for tape in pool.media %}
-        <a href="{{ url_for('main.volume_details', volume_id=tape.volumename) }}"
-            class="tape-cell status-{{ tape.status_class }}"
-            title="Slot {{ tape.slot or '—' }} · {{ tape.volbytes }}">
-            <img class="tape-barcode" src="{{ url_for('main.vault_barcode_png', volumename=tape.volumename) }}"
-                alt="{{ tape.volumename }}" loading="lazy" onerror="this.style.display='none'">
-            <span class="tape-name">{{ tape.volumename }}</span>
-            <div class="tape-footer">
-                <span class="tape-slot">{% if tape.slot %}{{ tape.slot }}{% endif %}</span>
-                <span class="tape-meta">{{ tape.volstatus }} · {{ tape.volbytes }}</span>
-            </div>
-        </a>
-        {% else %}
-        <p class="pool-empty">No media in this pool.</p>
+{% if show_library %}
+<section class="library-vault">
+    <h2 class="pool-title">Library <span class="pool-count">(by slot)</span></h2>
+    <div class="library-grid">
+        {% for row in library_grid %}
+        {% for cell in row %}
+        {% if cell.kind != 'skip' %}
+        <div class="lib-cell lib-{{ cell.kind }}"
+            style="grid-row: {{ cell.row + 1 }}; grid-column: {{ cell.col + 1 }} / span {{ cell.colspan }};">
+            {% if cell.label %}<span class="lib-label">{{ cell.label }}</span>{% endif %}
+            {% if cell.tape %}
+            {% with tape=cell.tape %}
+            {% include "_tape_cell.html" %}
+            {% endwith %}
+            {% elif cell.kind == 'tape' %}
+            <div class="lib-empty-tape">empty</div>
+            {% elif cell.kind == 'drive' %}
+            <div class="lib-empty-tape lib-empty-drive">empty</div>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% endfor %}
         {% endfor %}
     </div>
 </section>
-{% else %}
-<p>No media in the catalog yet.</p>
-{% endfor %}
+{% endif %}
+
+<section class="pool-vault-section">
+    <h2 class="pool-title">Pools</h2>
+    {% for pool in pools %}
+    <section class="pool-vault">
+        <h3 class="pool-title">{{ pool.name }} <span class="pool-count">({{ pool.media|length }})</span></h3>
+        <div class="tape-shelf" style="--shelf-cols: {{ shelf_cols }};">
+            {% for tape in pool.media %}
+            {% include "_tape_cell.html" %}
+            {% else %}
+            <p class="pool-empty">No media in this pool.</p>
+            {% endfor %}
+        </div>
+    </section>
+    {% else %}
+    <p>No media in the catalog yet.</p>
+    {% endfor %}
+</section>
 
 {% endblock %}

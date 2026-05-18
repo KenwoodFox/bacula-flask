@@ -1,0 +1,11 @@
+<a href="{{ url_for('main.volume_details', volume_id=tape.volumename) }}"
+    class="tape-cell status-{{ tape.status_class }}"
+    title="Slot {{ tape.slot or '—' }} · {{ tape.volbytes }}">
+    <img class="tape-barcode" src="{{ url_for('main.vault_barcode_png', volumename=tape.volumename) }}"
+        alt="{{ tape.volumename }}" loading="lazy" onerror="this.style.display='none'">
+    <span class="tape-name">{{ tape.volumename }}</span>
+    <div class="tape-footer">
+        <span class="tape-slot">{% if tape.slot %}{{ tape.slot }}{% endif %}</span>
+        <span class="tape-meta">{{ tape.volstatus }} · {{ tape.volbytes }}</span>
+    </div>
+</a>
