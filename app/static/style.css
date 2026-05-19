@@ -146,15 +146,15 @@ td[data-percentage] {
   width: 100%;
   height: var(--tape-h);
   box-sizing: border-box;
-  border: 2px solid #00aa00;
-  background: #001800;
-  color: lime;
+  border: 2px solid #335533;
+  background: #0a120a;
+  color: #88aa88;
   text-decoration: none;
   overflow: hidden;
 }
 
 .tape-cell:hover {
-  border-color: lime;
+  border-color: #557755;
 }
 
 .tape-barcode {
@@ -186,26 +186,72 @@ td[data-percentage] {
 }
 
 .tape-slot {
-  color: #00aa00;
+  color: inherit;
 }
 
 .tape-meta {
-  color: #00cc00;
+  color: inherit;
+  opacity: 0.85;
   font-weight: normal;
+}
+
+/* Full — greyed out */
+.tape-cell.status-full,
+.tape-cell.status-f,
+.tape-cell.status-fu,
+.tape-cell.status-archive {
+  opacity: 0.52;
+  filter: grayscale(0.85);
+  border-color: #444;
+  background: #141414;
+  color: #666;
+}
+
+.tape-cell.status-full:hover,
+.tape-cell.status-f:hover,
+.tape-cell.status-fu:hover,
+.tape-cell.status-archive:hover {
+  border-color: #555;
+}
+
+/* Append — yellow activity */
+@keyframes append-glow {
+  0%,
+  100% {
+    border-color: #aa8800;
+    box-shadow: 0 0 6px rgba(255, 210, 0, 0.25);
+  }
+  50% {
+    border-color: #ffdd44;
+    box-shadow: 0 0 12px rgba(255, 230, 80, 0.45);
+  }
 }
 
 .tape-cell.status-append,
 .tape-cell.status-appended {
   border-color: #aa8800;
+  background: #1a1708;
   color: #c9a800;
+  animation: append-glow 2.8s ease-in-out infinite;
 }
 
+.tape-cell.status-append .tape-barcode,
+.tape-cell.status-appended .tape-barcode {
+  border-bottom-color: #665500;
+}
+
+/* Recycle / purged — green (available) */
 .tape-cell.status-purged,
 .tape-cell.status-recycle {
-  opacity: 0.5;
-  filter: grayscale(0.85);
-  border-color: #444;
-  color: #666;
+  border-color: #00aa00;
+  background: #001800;
+  color: lime;
+  box-shadow: 0 0 8px rgba(0, 200, 0, 0.35);
+}
+
+.tape-cell.status-purged:hover,
+.tape-cell.status-recycle:hover {
+  border-color: lime;
 }
 
 .tape-cell.status-e,
