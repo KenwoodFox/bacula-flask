@@ -1,32 +1,20 @@
 """2U library slot grid and drive bays."""
 
-from .vault_config import all_drive_names
+import re
 
-# storage slot number -> (row, col)
+from .vault_config import (
+    AUTOCHANGER_DRIVES,
+    STANDALONE_DRIVES,
+    all_drive_names,
+)
+
 SLOT_POS = {
-    8: (0, 0),
-    9: (0, 1),
-    10: (0, 2),
-    11: (0, 3),
-    4: (1, 0),
-    5: (1, 1),
-    6: (1, 2),
-    7: (1, 3),
-    1: (2, 1),
-    2: (2, 2),
-    3: (2, 3),
-    23: (0, 4),
-    22: (0, 5),
-    21: (0, 6),
-    20: (0, 7),
-    19: (1, 4),
-    18: (1, 5),
-    17: (1, 6),
-    16: (1, 7),
-    15: (2, 4),
-    14: (2, 5),
-    13: (2, 6),
-    12: (2, 7),
+    8: (0, 0), 9: (0, 1), 10: (0, 2), 11: (0, 3),
+    4: (1, 0), 5: (1, 1), 6: (1, 2), 7: (1, 3),
+    1: (2, 1), 2: (2, 2), 3: (2, 3),
+    23: (0, 4), 22: (0, 5), 21: (0, 6), 20: (0, 7),
+    19: (1, 4), 18: (1, 5), 17: (1, 6), 16: (1, 7),
+    15: (2, 4), 14: (2, 5), 13: (2, 6), 12: (2, 7),
 }
 
 
@@ -36,52 +24,75 @@ def _slot_text(slot):
     return str(slot).strip()
 
 
-def tape_matches_drive_name(tape, drive_name):
-    """Match drive name against media.volumename or media.slot."""
+def _drive_bay_prefix(name):
+    """Drive-9-LTO-4 -> drive-9 (same bay after LTO generation renames)."""
+    m = re.match(r"^(drive-\d+)", (name or "").lower())
+    return m.group(1) if m else ""
+
+
+def _storage_matches_drive(storage_name, drive_name):
+    storage = (storage_name or "").lower()
     key = drive_name.lower()
+    if not storage:
+        return False
+    if key in storage or storage == key:
+        return True
+    bay = _drive_bay_prefix(key)
+    return bool(bay and bay == _drive_bay_prefix(storage))
+
+
+def _drive_match(tape, name, *, storage=False):
+    key = name.lower()
     vol = (tape.get("volumename") or "").lower()
     slot = _slot_text(tape.get("slot")).lower()
-    return key in vol or vol == key or key in slot or slot == key
+    if key in vol or vol == key or key in slot or slot == key:
+        return True
+    if storage:
+        return _storage_matches_drive(tape.get("storage_name"), name)
+    return False
 
 
-def tape_drive_name(tape):
+def tape_for_drive(tapes, name):
+    matches = [t for t in tapes if _drive_match(t, name, storage=True)]
+    if not matches:
+        return None
+    if len(matches) == 1:
+        return matches[0]
+
+    def sort_key(tape):
+        append = 0 if (tape.get("volstatus") or "").lower() == "append" else 1
+        written = tape.get("lastwritten")
+        return (append, -(written.timestamp() if written else 0))
+
+    return min(matches, key=sort_key)
+
+
+def drive_tape_mediaids(tapes):
+    ids = set()
     for name in all_drive_names():
-        if tape_matches_drive_name(tape, name):
-            return name
-    return None
+        tape = tape_for_drive(tapes, name)
+        if tape and tape.get("mediaid") is not None:
+            ids.add(tape["mediaid"])
+    return ids
 
 
 def build_drives(tapes, names):
-    """Drive bays for a name list: [{name, tape}, ...]."""
-    return [
-        {
-            "name": name,
-            "tape": next(
-                (t for t in tapes if tape_matches_drive_name(t, name)),
-                None,
-            ),
-        }
-        for name in names
-        if name
-    ]
+    return [{"name": n, "tape": tape_for_drive(tapes, n)} for n in names if n]
 
 
 def parse_slot(slot):
-    """Return int magazine slot number, or None."""
     text = _slot_text(slot)
     if not text or not text.isdigit():
         return None
-    return int(text)
+    num = int(text)
+    return None if num == 0 else num
 
 
 def build_library_grid(tapes):
-    """3×8 magazine grid."""
     by_slot = {}
     for tape in tapes:
-        if tape_drive_name(tape):
-            continue
         key = parse_slot(tape.get("slot"))
-        if isinstance(key, int):
+        if key is not None:
             by_slot[key] = tape
 
     grid = []
@@ -91,24 +102,42 @@ def build_library_grid(tapes):
             if row == 2 and col == 0:
                 line.append(_cell(row, col, "io", label="I/O"))
                 continue
-
             slot = _slot_at(row, col)
             if slot:
                 line.append(
-                    _cell(
-                        row,
-                        col,
-                        "tape",
-                        slot=slot,
-                        label=str(slot),
-                        tape=by_slot.get(slot),
-                    )
+                    _cell(row, col, "tape", slot=slot, label=str(slot), tape=by_slot.get(slot))
                 )
             else:
                 line.append(_cell(row, col, "empty"))
         grid.append(line)
-
     return grid
+
+
+def has_slotted_tapes(tapes):
+    return any(parse_slot(t.get("slot")) is not None for t in tapes)
+
+
+def build_vault_layout(tapes):
+    """Sections, magazine grid, and drive-bay exclusions for /vault."""
+    in_drive = drive_tape_mediaids(tapes)
+    library_tapes = [t for t in tapes if t["mediaid"] not in in_drive]
+    sections = []
+
+    if STANDALONE_DRIVES:
+        sections.append(
+            {"title": "Standalone", "drives": build_drives(tapes, STANDALONE_DRIVES)}
+        )
+
+    if has_slotted_tapes(tapes) or AUTOCHANGER_DRIVES:
+        sections.append(
+            {
+                "title": "Autochanger",
+                "drives": build_drives(tapes, AUTOCHANGER_DRIVES),
+                "library_grid": build_library_grid(library_tapes),
+            }
+        )
+
+    return {"vault_sections": sections}
 
 
 def _slot_at(row, col):
@@ -120,15 +149,6 @@ def _slot_at(row, col):
 
 def _cell(row, col, kind, slot=None, label="", tape=None, colspan=1):
     return {
-        "row": row,
-        "col": col,
-        "colspan": colspan,
-        "kind": kind,
-        "slot": slot,
-        "label": label,
-        "tape": tape,
+        "row": row, "col": col, "colspan": colspan, "kind": kind,
+        "slot": slot, "label": label, "tape": tape,
     }
-
-
-def has_slotted_tapes(tapes):
-    return any(parse_slot(t.get("slot")) is not None for t in tapes)

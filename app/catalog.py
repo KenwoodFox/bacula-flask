@@ -127,9 +127,11 @@ def fetch_media_by_pool():
                     m.volstatus,
                     m.volbytes,
                     m.lastwritten,
-                    m.mediatype
+                    m.mediatype,
+                    s.name AS storage_name
                 FROM media m
                 LEFT JOIN pool p ON p.poolid = m.poolid
+                LEFT JOIN storage s ON s.storageid = m.storageid
                 ORDER BY
                     p.name NULLS LAST,
                     NULLIF(
@@ -169,6 +171,7 @@ def fetch_media_by_pool():
                 "volbytes": human_readable_bytes(row["volbytes"] or 0),
                 "lastwritten": row["lastwritten"],
                 "mediatype": row["mediatype"] or "",
+                "storage_name": row["storage_name"] or "",
             }
         )
 

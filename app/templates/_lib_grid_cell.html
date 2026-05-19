@@ -1,0 +1,11 @@
+<div class="lib-cell lib-{{ cell.kind }}"
+    style="grid-row: {{ cell.row + 1 }}; grid-column: {{ cell.col + 1 }} / span {{ cell.colspan }};">
+    {% if cell.label %}<span class="lib-label">{{ cell.label }}</span>{% endif %}
+    {% if cell.tape %}
+    {% with tape=cell.tape %}
+    {% include "_tape_cell.html" %}
+    {% endwith %}
+    {% elif cell.kind == 'tape' %}
+    <div class="lib-empty-tape">empty</div>
+    {% endif %}
+</div>

@@ -9,13 +9,7 @@ from .catalog import (
     fetch_volume,
     fetch_volumes_for_labels,
 )
-from .library_layout import (
-    build_drives,
-    build_library_grid,
-    has_slotted_tapes,
-    tape_drive_name,
-)
-from .vault_config import AUTOCHANGER_DRIVES, STANDALONE_DRIVES
+from .library_layout import build_vault_layout
 from .labels import (
     build_tape_label,
     build_tape_label_sheet,
@@ -55,20 +49,12 @@ def index():
 def media_vault():
     pools = fetch_media_by_pool()
     all_tapes = [tape for pool in pools for tape in pool["media"]]
-    standalone_drives = build_drives(all_tapes, STANDALONE_DRIVES)
-    autochanger_drives = build_drives(all_tapes, AUTOCHANGER_DRIVES)
-    library_tapes = [t for t in all_tapes if not tape_drive_name(t)]
-    show_library = has_slotted_tapes(all_tapes) or bool(autochanger_drives)
-    library_grid = build_library_grid(library_tapes) if show_library else []
 
     return render_template(
         "media_vault.html",
         pools=pools,
         shelf_cols=SHELF_COLS,
-        library_grid=library_grid,
-        show_library=show_library,
-        standalone_drives=standalone_drives,
-        autochanger_drives=autochanger_drives,
+        **build_vault_layout(all_tapes),
     )
 
 

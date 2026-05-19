@@ -1,0 +1,19 @@
+<section class="{{ 'library-vault' if section.library_grid is defined else 'vault-drives' }}">
+    <h2 class="pool-title">{{ section.title }}</h2>
+    {% with drives=section.drives %}
+    {% include "_drive_section.html" %}
+    {% endwith %}
+    {% if section.library_grid is defined %}
+    <div class="library-scroll">
+        <div class="library-grid">
+            {% for row in section.library_grid %}
+            {% for cell in row %}
+            {% if cell.kind != 'skip' %}
+            {% include "_lib_grid_cell.html" %}
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</section>

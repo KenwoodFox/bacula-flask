@@ -1,7 +1,9 @@
 """
 Vault drive names — edit this file when labels change.
 
-Volumes match if the drive name appears in media.volumename or media.slot.
+Drive bay names match volumename/slot text, or storage.name to pick the
+mounted volume (also older names like Drive-9-LTO-3 when config says
+Drive-9-LTO-4 — same Drive-N bay). Only that volume is hidden from the grid.
 
 Optional .env overrides (comma-separated lists):
   VAULT_AUTOCHANGER_DRIVES
@@ -16,15 +18,8 @@ def _parse_names(raw):
     return [n.strip() for n in raw.split(",") if n.strip()]
 
 
-# In-library autochanger (row above the slot grid)
-AUTOCHANGER_DRIVES = [
-    "LTO-4-1",
-]
-
-# Stand-alone drives (section above the library)
-STANDALONE_DRIVES = [
-    "LTO-4-9",
-]
+AUTOCHANGER_DRIVES = []
+STANDALONE_DRIVES = ["Drive-9-LTO-4"]
 
 if raw := os.getenv("VAULT_AUTOCHANGER_DRIVES"):
     AUTOCHANGER_DRIVES = _parse_names(raw)
@@ -36,7 +31,6 @@ if raw := os.getenv("VAULT_STANDALONE_DRIVES"):
 
 
 def all_drive_names():
-    """Every configured drive (autochanger first, then stand-alone)."""
     names = []
     for name in [*AUTOCHANGER_DRIVES, *STANDALONE_DRIVES]:
         if name and name not in names:

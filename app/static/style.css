@@ -1,3 +1,9 @@
+:root {
+  --tape-w: 15.0rem;
+  --tape-h: 7.00rem;
+  --tape-barcode-h: 3.1rem;
+}
+
 body {
   font-family: "Courier New", Courier, monospace;
   background-color: black;
@@ -107,17 +113,20 @@ td[data-percentage] {
 
 .tape-shelf {
   display: grid;
-  grid-template-columns: repeat(var(--shelf-cols, 8), minmax(5.5rem, 1fr));
+  grid-template-columns: repeat(var(--shelf-cols, 8), var(--tape-w));
   gap: 0.5rem;
   justify-content: start;
 }
 
 .tape-cell {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: var(--tape-barcode-h) 1fr auto;
   align-items: stretch;
   justify-items: stretch;
-  min-height: 8.75rem;
+  width: var(--tape-w);
+  height: var(--tape-h);
+  min-height: var(--tape-h);
+  box-sizing: border-box;
   padding: 0;
   overflow: hidden;
   border: 2px solid #00aa00;
@@ -137,7 +146,7 @@ td[data-percentage] {
 .tape-barcode {
   display: block;
   width: 100%;
-  height: 3.1rem;
+  height: var(--tape-barcode-h);
   margin: 0;
   padding: 0;
   object-fit: fill;
@@ -307,12 +316,7 @@ td[data-percentage] {
 
 .vault-drives,
 .library-vault {
-  --vault-cols: 8;
   --vault-gap: 0.35rem;
-  --vault-slot: calc(
-    (100% - (var(--vault-cols) - 1) * var(--vault-gap)) / var(--vault-cols)
-  );
-  --vault-drive: calc(var(--vault-slot) * 1.5);
   margin: 1.5rem auto 0;
   max-width: 98%;
 }
@@ -332,7 +336,7 @@ td[data-percentage] {
 
 .library-grid {
   display: grid;
-  grid-template-columns: repeat(8, minmax(5.5rem, 1fr));
+  grid-template-columns: repeat(8, var(--tape-w));
   grid-template-rows: repeat(3, auto);
   gap: var(--vault-gap);
 }
@@ -340,6 +344,11 @@ td[data-percentage] {
 .lib-cell {
   position: relative;
   min-height: 2.5rem;
+}
+
+.library-grid .lib-cell.lib-tape {
+  display: flex;
+  justify-content: center;
 }
 
 .lib-label {
@@ -365,13 +374,12 @@ td[data-percentage] {
 .lib-drive {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   border: 2px solid #0066aa;
   background: #001525;
-  padding-top: 1rem;
-  min-height: 7.5rem;
-  width: var(--vault-drive, calc(5.5rem * 1.5));
-  min-width: calc(5.5rem * 1.5);
+  padding: 1rem 0.35rem 0.35rem;
+  width: calc(var(--tape-w) + 0.7rem);
+  min-width: calc(var(--tape-w) + 0.7rem);
   flex: 0 0 auto;
   box-sizing: border-box;
 }
@@ -381,7 +389,6 @@ td[data-percentage] {
 }
 
 .lib-empty-tape {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -389,16 +396,13 @@ td[data-percentage] {
   text-align: center;
   font-size: 0.65rem;
   color: #004400;
-  min-height: 5.5rem;
+  width: var(--tape-w);
+  min-height: var(--tape-h);
+  box-sizing: border-box;
 }
 
 .lib-empty-drive {
   color: #336688;
-}
-
-.lib-cell .tape-cell {
-  width: 100%;
-  min-height: 7.5rem;
 }
 
 .volume-label-hero {
@@ -450,17 +454,15 @@ td[data-percentage] {
     margin: 1.25rem auto;
   }
 
+  :root {
+    --tape-w: 3.25rem;
+    --tape-h: 5.25rem;
+    --tape-barcode-h: 1.4rem;
+  }
+
   .tape-shelf {
-    grid-template-columns: repeat(auto-fill, minmax(4.75rem, 1fr));
+    grid-template-columns: repeat(auto-fill, var(--tape-w));
     gap: 0.35rem;
-  }
-
-  .tape-cell {
-    min-height: 6.25rem;
-  }
-
-  .tape-barcode {
-    height: 2rem;
   }
 
   .tape-footer {
@@ -470,13 +472,6 @@ td[data-percentage] {
 
   .tape-meta {
     font-size: 0.55rem;
-  }
-
-  /* Library: keep 8-column layout, pan horizontally */
-  .vault-drives,
-  .library-vault {
-    --vault-slot: 3.25rem;
-    --vault-drive: calc(var(--vault-slot) * 1.5);
   }
 
   .library-scroll {
@@ -491,15 +486,7 @@ td[data-percentage] {
     --vault-gap: 0.25rem;
     width: max-content;
     min-width: 100%;
-    grid-template-columns: repeat(8, var(--vault-slot));
-  }
-
-  .library-grid .tape-cell {
-    min-height: 5.25rem;
-  }
-
-  .library-grid .tape-barcode {
-    height: 1.4rem;
+    grid-template-columns: repeat(8, var(--tape-w));
   }
 
   .library-grid .tape-name {
@@ -521,19 +508,11 @@ td[data-percentage] {
     font-size: 0.55rem;
   }
 
-  .lib-drive {
-    min-height: 6rem;
-  }
-
   .lib-empty-tape {
     min-height: 4rem;
     font-size: 0.55rem;
   }
 
-  .vault-drives-row .lib-drive {
-    width: var(--vault-drive);
-    min-width: var(--vault-drive);
-  }
 }
 
 @media (max-width: 420px) {
@@ -549,7 +528,4 @@ td[data-percentage] {
     max-width: none;
   }
 
-  .tape-shelf {
-    grid-template-columns: repeat(auto-fill, minmax(4.25rem, 1fr));
-  }
 }
