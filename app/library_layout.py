@@ -51,14 +51,23 @@ def _changer_storage_for_drive(drive_name):
 
 
 def _tape_in_changer_drive(tape, drive_name):
-    """Mounted in a changer drive; catalog may still show I/O slot."""
+    """Mounted in a changer drive; catalog slot is often stale."""
     changer = _changer_storage_for_drive(drive_name)
     if not changer or (tape.get("storage_name") or "").lower() != changer:
         return False
     slot = _slot_text(tape.get("slot"))
-    if slot in ("0", str(IO_SLOT)):
+    status = (tape.get("volstatus") or "").lower()
+    if slot == "0":
         return True
-    return tape.get("in_changer") is False
+    # I/O port: only treat as drive while actively appending (else show in grid)
+    if slot == str(IO_SLOT):
+        return status == "append"
+    if tape.get("in_changer") is False:
+        return True
+    # Magazine slot + Append + no lastwritten yet → writing in drive, slot not updated
+    if status == "append" and tape.get("lastwritten") is None:
+        return True
+    return False
 
 
 def _drive_match(tape, name, *, storage=False):
