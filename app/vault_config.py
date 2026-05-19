@@ -18,8 +18,8 @@ def _parse_names(raw):
     return [n.strip() for n in raw.split(",") if n.strip()]
 
 
-AUTOCHANGER_DRIVES = []
-STANDALONE_DRIVES = ["Drive-9-LTO-4"]
+AUTOCHANGER_DRIVES = ["Drive-1-LTO"]
+STANDALONE_DRIVES = ["Drive-9-LTO"]
 
 if raw := os.getenv("VAULT_AUTOCHANGER_DRIVES"):
     AUTOCHANGER_DRIVES = _parse_names(raw)

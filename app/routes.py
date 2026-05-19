@@ -1,6 +1,6 @@
 import os
 
-from flask import Blueprint, Response, abort, render_template, request
+from flask import Blueprint, Response, abort, jsonify, render_template, request
 
 from .catalog import (
     fetch_dashboard_jobs,
@@ -9,6 +9,7 @@ from .catalog import (
     fetch_volume,
     fetch_volumes_for_labels,
 )
+from .drive_stats import fetch_drive_stats
 from .library_layout import build_vault_layout
 from .labels import (
     build_tape_label,
@@ -56,6 +57,11 @@ def media_vault():
         shelf_cols=SHELF_COLS,
         **build_vault_layout(all_tapes),
     )
+
+
+@bp.route("/vault/api/drive/<path:drive_name>/stats")
+def vault_drive_stats(drive_name):
+    return jsonify(fetch_drive_stats(drive_name))
 
 
 @bp.route("/vault/barcode/<path:volumename>.png")

@@ -6,6 +6,8 @@
     <span class="tape-name">{{ tape.volumename }}</span>
     <div class="tape-footer">
         <span class="tape-slot">{% if slot_label is defined and slot_label %}{{ slot_label }}{% elif tape.slot %}{{ tape.slot }}{% endif %}</span>
+        {% if not drive_footer|default(false) %}
         <span class="tape-meta">{{ tape.volstatus }} · {{ tape.volbytes }}</span>
+        {% endif %}
     </div>
 </a>

@@ -178,6 +178,55 @@ def fetch_media_by_pool():
     return pools
 
 
+def fetch_media_tapes():
+    """Flat media list for layout and drive stats (raw byte counts)."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    m.mediaid,
+                    m.volumename,
+                    m.slot,
+                    m.volstatus,
+                    m.volbytes,
+                    m.lastwritten,
+                    m.mediatype,
+                    m.endfile,
+                    m.endblock,
+                    m.volwrites,
+                    m.volwritetime,
+                    s.name AS storage_name,
+                    p.name AS pool_name
+                FROM media m
+                LEFT JOIN pool p ON p.poolid = m.poolid
+                LEFT JOIN storage s ON s.storageid = m.storageid
+                """
+            )
+            rows = cur.fetchall()
+
+    tapes = []
+    for row in rows:
+        tapes.append(
+            {
+                "mediaid": row["mediaid"],
+                "volumename": row["volumename"],
+                "slot": "" if row["slot"] is None else str(row["slot"]).strip(),
+                "volstatus": row["volstatus"] or "",
+                "volbytes": row["volbytes"] or 0,
+                "lastwritten": row["lastwritten"],
+                "mediatype": row["mediatype"] or "",
+                "endfile": row["endfile"],
+                "endblock": row["endblock"],
+                "volwrites": row["volwrites"],
+                "volwritetime": row["volwritetime"],
+                "storage_name": row["storage_name"] or "",
+                "pool_name": row["pool_name"] or "",
+            }
+        )
+    return tapes
+
+
 def fetch_volumes_for_labels(pool_name=None):
     """(volumename, pool_name) pairs for label generation."""
     with get_connection() as conn:
