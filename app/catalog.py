@@ -4,6 +4,18 @@ from .db import get_connection
 from .utils import human_readable_bytes, job_row_to_dict
 
 
+def _tape_flags(volumename: str, slot: str, inchanger) -> dict:
+    """inchanger: 1 = in library, 0 = not (e.g. in drive or exported)."""
+    vol = (volumename or "").upper()
+    in_changer = None if inchanger is None else int(inchanger) == 1
+    in_magazine = bool(slot and slot.isdigit() and int(slot) > 0)
+    return {
+        "in_changer": in_changer,
+        "is_cleaning": vol.startswith("CLN"),
+        "out_of_changer": in_changer is False and in_magazine,
+    }
+
+
 def _volstatus_class(volstatus: str | None) -> str:
     raw = (volstatus or "unknown").strip().lower()
     aliases = {
@@ -128,6 +140,7 @@ def fetch_media_by_pool():
                     m.volbytes,
                     m.lastwritten,
                     m.mediatype,
+                    m.inchanger,
                     s.name AS storage_name
                 FROM media m
                 LEFT JOIN pool p ON p.poolid = m.poolid
@@ -161,17 +174,19 @@ def fetch_media_by_pool():
                 }
             )
 
+        slot = "" if row["slot"] is None else str(row["slot"]).strip()
         pools[pool_index[pool_key]]["media"].append(
             {
                 "mediaid": row["mediaid"],
                 "volumename": row["volumename"],
-                "slot": "" if row["slot"] is None else str(row["slot"]).strip(),
+                "slot": slot,
                 "volstatus": row["volstatus"] or "",
                 "status_class": _volstatus_class(row["volstatus"]),
                 "volbytes": human_readable_bytes(row["volbytes"] or 0),
                 "lastwritten": row["lastwritten"],
                 "mediatype": row["mediatype"] or "",
                 "storage_name": row["storage_name"] or "",
+                **_tape_flags(row["volumename"], slot, row["inchanger"]),
             }
         )
 
@@ -196,6 +211,7 @@ def fetch_media_tapes():
                     m.endblock,
                     m.volwrites,
                     m.volwritetime,
+                    m.inchanger,
                     s.name AS storage_name,
                     p.name AS pool_name
                 FROM media m
@@ -207,11 +223,12 @@ def fetch_media_tapes():
 
     tapes = []
     for row in rows:
+        slot = "" if row["slot"] is None else str(row["slot"]).strip()
         tapes.append(
             {
                 "mediaid": row["mediaid"],
                 "volumename": row["volumename"],
-                "slot": "" if row["slot"] is None else str(row["slot"]).strip(),
+                "slot": slot,
                 "volstatus": row["volstatus"] or "",
                 "volbytes": row["volbytes"] or 0,
                 "lastwritten": row["lastwritten"],
@@ -222,6 +239,7 @@ def fetch_media_tapes():
                 "volwritetime": row["volwritetime"],
                 "storage_name": row["storage_name"] or "",
                 "pool_name": row["pool_name"] or "",
+                **_tape_flags(row["volumename"], slot, row["inchanger"]),
             }
         )
     return tapes
@@ -280,6 +298,7 @@ def fetch_volume(volumename):
                     m.volwritetime,
                     m.volretention,
                     m.enabled,
+                    m.inchanger,
                     p.name AS pool
                 FROM media m
                 LEFT JOIN pool p ON p.poolid = m.poolid
@@ -297,6 +316,7 @@ def fetch_volume(volumename):
         "Volume": row["volumename"],
         "Pool": row["pool"],
         "Slot": row["slot"],
+        "In changer": "yes" if row["inchanger"] == 1 else "no",
         "Media Type": row["mediatype"],
         "First Written": row["firstwritten"],
         "Last Written": row["lastwritten"],

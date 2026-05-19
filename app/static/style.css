@@ -214,6 +214,15 @@ td[data-percentage] {
   animation: flash 2s infinite;
 }
 
+.tape-cell.tape-cleaning {
+  border-color: #6688cc;
+  color: #99bbee;
+}
+
+.tape-cell.tape-out {
+  opacity: 0.65;
+}
+
 .pool-empty {
   grid-column: 1 / -1;
   color: #006600;

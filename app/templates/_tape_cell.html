@@ -1,13 +1,13 @@
 <a href="{{ url_for('main.volume_details', volume_id=tape.volumename) }}"
-    class="tape-cell status-{{ tape.status_class }}"
-    title="Slot {{ tape.slot or '—' }} · {{ tape.volbytes }}">
+    class="tape-cell status-{{ tape.status_class }}{% if tape.is_cleaning %} tape-cleaning{% elif tape.out_of_changer %} tape-out{% endif %}"
+    title="Slot {{ tape.slot or '—' }}{% if tape.is_cleaning %} · cleaning{% elif tape.in_changer %} · in changer{% elif tape.out_of_changer %} · out of changer{% endif %} · {{ tape.volbytes }}">
     <img class="tape-barcode" src="{{ url_for('main.vault_barcode_png', volumename=tape.volumename) }}"
         alt="{{ tape.volumename }}" loading="lazy" onerror="this.style.display='none'">
     <span class="tape-name">{{ tape.volumename }}</span>
     <div class="tape-footer">
         <span class="tape-slot">{% if slot_label is defined and slot_label %}{{ slot_label }}{% elif tape.slot %}{{ tape.slot }}{% endif %}</span>
         {% if not drive_footer|default(false) %}
-        <span class="tape-meta">{{ tape.volstatus }} · {{ tape.volbytes }}</span>
+        <span class="tape-meta">{{ tape.volstatus }} · {{ tape.volbytes }}{% if tape.is_cleaning %} · clean{% elif tape.out_of_changer %} · out{% endif %}</span>
         {% endif %}
     </div>
 </a>

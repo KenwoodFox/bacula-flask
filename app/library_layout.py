@@ -8,6 +8,8 @@ from .vault_config import (
     all_drive_names,
 )
 
+IO_SLOT = 24
+
 SLOT_POS = {
     8: (0, 0), 9: (0, 1), 10: (0, 2), 11: (0, 3),
     4: (1, 0), 5: (1, 1), 6: (1, 2), 7: (1, 3),
@@ -15,6 +17,7 @@ SLOT_POS = {
     23: (0, 4), 22: (0, 5), 21: (0, 6), 20: (0, 7),
     19: (1, 4), 18: (1, 5), 17: (1, 6), 16: (1, 7),
     15: (2, 4), 14: (2, 5), 13: (2, 6), 12: (2, 7),
+    24: (2, 0),
 }
 
 
@@ -35,10 +38,27 @@ def _storage_matches_drive(storage_name, drive_name):
     key = drive_name.lower()
     if not storage:
         return False
-    if key in storage or storage == key:
+    if key == storage or key in storage:
         return True
     bay = _drive_bay_prefix(key)
     return bool(bay and bay == _drive_bay_prefix(storage))
+
+
+def _changer_storage_for_drive(drive_name):
+    """TL2000-Drive-0 -> TL2000 (changer Storage, not the drive device)."""
+    m = re.match(r"^(.+)-drive-\d+$", (drive_name or "").lower())
+    return m.group(1) if m else None
+
+
+def _tape_in_changer_drive(tape, drive_name):
+    """Mounted in a changer drive; catalog may still show I/O slot."""
+    changer = _changer_storage_for_drive(drive_name)
+    if not changer or (tape.get("storage_name") or "").lower() != changer:
+        return False
+    slot = _slot_text(tape.get("slot"))
+    if slot in ("0", str(IO_SLOT)):
+        return True
+    return tape.get("in_changer") is False
 
 
 def _drive_match(tape, name, *, storage=False):
@@ -52,8 +72,27 @@ def _drive_match(tape, name, *, storage=False):
     return False
 
 
+def _drive_match_rank(tape):
+    slot = _slot_text(tape.get("slot"))
+    if slot == str(IO_SLOT):
+        return 0
+    if slot == "0":
+        return 1
+    if tape.get("in_changer") is False:
+        return 2
+    return 3
+
+
 def tape_for_drive(tapes, name):
-    matches = [t for t in tapes if _drive_match(t, name, storage=True)]
+    if _changer_storage_for_drive(name):
+        matches = [
+            t
+            for t in tapes
+            if _tape_in_changer_drive(t, name)
+            or _storage_matches_drive(t.get("storage_name"), name)
+        ]
+    else:
+        matches = [t for t in tapes if _drive_match(t, name, storage=True)]
     if not matches:
         return None
     if len(matches) == 1:
@@ -62,7 +101,8 @@ def tape_for_drive(tapes, name):
     def sort_key(tape):
         append = 0 if (tape.get("volstatus") or "").lower() == "append" else 1
         written = tape.get("lastwritten")
-        return (append, -(written.timestamp() if written else 0))
+        ts = -(written.timestamp() if written else 0)
+        return (_drive_match_rank(tape), append, ts)
 
     return min(matches, key=sort_key)
 
@@ -99,11 +139,16 @@ def build_library_grid(tapes):
     for row in range(3):
         line = []
         for col in range(8):
-            if row == 2 and col == 0:
-                line.append(_cell(row, col, "io", label="I/O"))
-                continue
             slot = _slot_at(row, col)
-            if slot:
+            if slot == IO_SLOT:
+                tape = by_slot.get(IO_SLOT)
+                if tape:
+                    line.append(
+                        _cell(row, col, "tape", slot=IO_SLOT, label="I/O", tape=tape)
+                    )
+                else:
+                    line.append(_cell(row, col, "io", label="I/O"))
+            elif slot:
                 line.append(
                     _cell(row, col, "tape", slot=slot, label=str(slot), tape=by_slot.get(slot))
                 )
