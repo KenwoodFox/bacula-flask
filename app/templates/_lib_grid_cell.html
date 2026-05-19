@@ -1,11 +1,15 @@
 <div class="lib-cell lib-{{ cell.kind }}"
     style="grid-row: {{ cell.row + 1 }}; grid-column: {{ cell.col + 1 }} / span {{ cell.colspan }};">
-    {% if cell.label %}<span class="lib-label">{{ cell.label }}</span>{% endif %}
     {% if cell.tape %}
-    {% with tape=cell.tape %}
+    {% with tape=cell.tape, slot_label=cell.label %}
     {% include "_tape_cell.html" %}
     {% endwith %}
     {% elif cell.kind == 'tape' %}
-    <div class="lib-empty">empty</div>
+    <div class="lib-empty">
+        <span class="tape-slot">{{ cell.label }}</span>
+        empty
+    </div>
+    {% elif cell.kind == 'io' %}
+    <div class="lib-io"><span class="tape-slot">{{ cell.label }}</span></div>
     {% endif %}
 </div>

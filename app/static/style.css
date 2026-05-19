@@ -224,35 +224,22 @@ td[data-percentage] {
   min-width: 0;
 }
 
-.lib-label {
-  position: absolute;
-  top: 2px;
-  left: 4px;
-  font-size: 0.6rem;
-  color: #00aa00;
-}
-
 .lib-io {
+  position: relative;
   border: 1px dashed #335533;
   color: #557755;
   min-height: var(--tape-h);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-sizing: border-box;
 }
 
 .lib-drive {
   position: relative;
   border: 2px solid #0066aa;
   background: #001525;
-  padding-top: 1rem;
-}
-
-.lib-drive .lib-label {
-  color: #66ccff;
 }
 
 .lib-empty {
+  position: relative;
   width: 100%;
   box-sizing: border-box;
   color: #004400;
@@ -265,6 +252,17 @@ td[data-percentage] {
 
 .lib-drive .lib-empty {
   color: #336688;
+}
+
+.lib-empty .tape-slot,
+.lib-io .tape-slot {
+  position: absolute;
+  bottom: 0.35rem;
+  left: 0.35rem;
+}
+
+.lib-drive .tape-slot {
+  color: #66ccff;
 }
 
 .volume-label-hero {

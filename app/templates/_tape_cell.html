@@ -5,7 +5,7 @@
         alt="{{ tape.volumename }}" loading="lazy" onerror="this.style.display='none'">
     <span class="tape-name">{{ tape.volumename }}</span>
     <div class="tape-footer">
-        <span class="tape-slot">{% if tape.slot %}{{ tape.slot }}{% endif %}</span>
+        <span class="tape-slot">{% if slot_label is defined and slot_label %}{{ slot_label }}{% elif tape.slot %}{{ tape.slot }}{% endif %}</span>
         <span class="tape-meta">{{ tape.volstatus }} · {{ tape.volbytes }}</span>
     </div>
 </a>

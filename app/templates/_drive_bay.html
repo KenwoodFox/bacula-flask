@@ -1,10 +1,12 @@
 <div class="lib-drive">
-    <span class="lib-label">{{ drive.name }}</span>
     {% if drive.tape %}
-    {% with tape=drive.tape %}
+    {% with tape=drive.tape, slot_label=drive.name %}
     {% include "_tape_cell.html" %}
     {% endwith %}
     {% else %}
-    <div class="lib-empty">empty</div>
+    <div class="lib-empty">
+        <span class="tape-slot">{{ drive.name }}</span>
+        empty
+    </div>
     {% endif %}
 </div>
