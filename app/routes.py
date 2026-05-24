@@ -1,6 +1,8 @@
 import os
 
-from flask import Blueprint, Response, abort, jsonify, render_template, request
+from flask import Blueprint, Response, abort, jsonify, redirect, render_template, request, session, url_for
+
+from .auth import SESSION_KEY, _safe_next, check_password, password_enabled
 
 from .catalog import (
     fetch_dashboard_jobs,
@@ -31,6 +33,21 @@ def _labels_allowed():
     if not secret:
         return True
     return request.args.get("key") == secret
+
+
+@bp.route("/login", methods=["GET", "POST"])
+def login():
+    if not password_enabled():
+        return redirect(url_for("main.index"))
+
+    next_url = _safe_next(request.args.get("next")) or url_for("main.index")
+    if request.method == "POST":
+        if check_password(request.form.get("password", "")):
+            session[SESSION_KEY] = True
+            return redirect(_safe_next(request.args.get("next")) or url_for("main.index"))
+        return render_template("login.html", error=True, next_url=next_url)
+
+    return render_template("login.html", error=False, next_url=next_url)
 
 
 @bp.route("/")
