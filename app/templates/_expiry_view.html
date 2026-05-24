@@ -1,0 +1,23 @@
+<section class="expiry-vault-section">
+    <p class="expiry-intro">
+        Tapes still in the changer flash <span class="expiry-intro-red">red</span>.
+        {% if expiry_groups|length > 1 %}
+        Group tapes with that year for
+        off-site storage.
+        {% endif %}
+    </p>
+    {% for group in expiry_groups %}
+    <section class="expiry-year-group">
+        <h2 class="expiry-year-title">{{ group.label }} <span class="pool-count">({{ group.tapes|length }})</span></h2>
+        <div class="tape-shelf expiry-shelf" style="--shelf-cols: {{ shelf_cols }};">
+            {% for tape in group.tapes %}
+            {% with expiry_footer=true %}
+            {% include "_tape_cell.html" %}
+            {% endwith %}
+            {% endfor %}
+        </div>
+    </section>
+    {% else %}
+    <p class="pool-empty">No full or archive volumes with a computable expiry date.</p>
+    {% endfor %}
+</section>

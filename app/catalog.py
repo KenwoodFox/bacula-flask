@@ -1,6 +1,7 @@
 import re
 
 from .db import get_connection
+from .expiry_layout import enrich_tape_expiry
 from .utils import human_readable_bytes, job_row_to_dict
 
 
@@ -142,9 +143,11 @@ def fetch_media_by_pool():
                     m.volstatus,
                     m.volbytes,
                     m.lastwritten,
+                    m.volretention,
                     m.mediatype,
                     m.inchanger,
-                    s.name AS storage_name
+                    s.name AS storage_name,
+                    p.volretention AS pool_volretention
                 FROM media m
                 LEFT JOIN pool p ON p.poolid = m.poolid
                 LEFT JOIN storage s ON s.storageid = m.storageid
@@ -178,74 +181,26 @@ def fetch_media_by_pool():
             )
 
         slot = "" if row["slot"] is None else str(row["slot"]).strip()
-        pools[pool_index[pool_key]]["media"].append(
-            {
-                "mediaid": row["mediaid"],
-                "volumename": row["volumename"],
-                "slot": slot,
-                "volstatus": row["volstatus"] or "",
-                "status_class": _volstatus_class(row["volstatus"]),
-                "volbytes": human_readable_bytes(row["volbytes"] or 0),
-                "lastwritten": row["lastwritten"],
-                "mediatype": row["mediatype"] or "",
-                "storage_name": row["storage_name"] or "",
-                **_tape_flags(row["volumename"], slot, row["inchanger"]),
-            }
+        tape = {
+            "mediaid": row["mediaid"],
+            "volumename": row["volumename"],
+            "slot": slot,
+            "volstatus": row["volstatus"] or "",
+            "status_class": _volstatus_class(row["volstatus"]),
+            "volbytes": human_readable_bytes(row["volbytes"] or 0),
+            "lastwritten": row["lastwritten"],
+            "mediatype": row["mediatype"] or "",
+            "storage_name": row["storage_name"] or "",
+            **_tape_flags(row["volumename"], slot, row["inchanger"]),
+        }
+        enrich_tape_expiry(
+            tape,
+            volretention=row["volretention"],
+            pool_volretention=row["pool_volretention"],
         )
+        pools[pool_index[pool_key]]["media"].append(tape)
 
     return pools
-
-
-def fetch_media_tapes():
-    """Flat media list for layout and drive stats (raw byte counts)."""
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT
-                    m.mediaid,
-                    m.volumename,
-                    m.slot,
-                    m.volstatus,
-                    m.volbytes,
-                    m.lastwritten,
-                    m.mediatype,
-                    m.endfile,
-                    m.endblock,
-                    m.volwrites,
-                    m.volwritetime,
-                    m.inchanger,
-                    s.name AS storage_name,
-                    p.name AS pool_name
-                FROM media m
-                LEFT JOIN pool p ON p.poolid = m.poolid
-                LEFT JOIN storage s ON s.storageid = m.storageid
-                """
-            )
-            rows = cur.fetchall()
-
-    tapes = []
-    for row in rows:
-        slot = "" if row["slot"] is None else str(row["slot"]).strip()
-        tapes.append(
-            {
-                "mediaid": row["mediaid"],
-                "volumename": row["volumename"],
-                "slot": slot,
-                "volstatus": row["volstatus"] or "",
-                "volbytes": row["volbytes"] or 0,
-                "lastwritten": row["lastwritten"],
-                "mediatype": row["mediatype"] or "",
-                "endfile": row["endfile"],
-                "endblock": row["endblock"],
-                "volwrites": row["volwrites"],
-                "volwritetime": row["volwritetime"],
-                "storage_name": row["storage_name"] or "",
-                "pool_name": row["pool_name"] or "",
-                **_tape_flags(row["volumename"], slot, row["inchanger"]),
-            }
-        )
-    return tapes
 
 
 def fetch_volumes_for_labels(pool_name=None):

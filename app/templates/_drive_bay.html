@@ -1,9 +1,8 @@
-<div class="lib-drive" data-drive="{{ drive.name }}">
+<div class="lib-drive">
     {% if drive.tape %}
     {% with tape=drive.tape, slot_label=drive.name, drive_footer=true %}
     {% include "_tape_cell.html" %}
     {% endwith %}
-    <div class="drive-stats" data-drive="{{ drive.name }}" aria-live="polite"></div>
     {% else %}
     <div class="lib-empty">
         <span class="tape-slot">{{ drive.name }}</span>

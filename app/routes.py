@@ -1,6 +1,6 @@
 import os
 
-from flask import Blueprint, Response, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, Response, abort, redirect, render_template, request, session, url_for
 
 from .auth import SESSION_KEY, _safe_next, check_password, password_enabled
 
@@ -11,7 +11,7 @@ from .catalog import (
     fetch_volume,
     fetch_volumes_for_labels,
 )
-from .drive_stats import fetch_drive_stats
+from .expiry_layout import build_expiry_groups
 from .library_layout import build_vault_layout
 from .labels import (
     build_tape_label,
@@ -65,20 +65,24 @@ def index():
 
 @bp.route("/vault")
 def media_vault():
+    view = request.args.get("view", "layout")
+    if view not in ("layout", "expiry"):
+        view = "layout"
+
     pools = fetch_media_by_pool()
     all_tapes = [tape for pool in pools for tape in pool["media"]]
 
-    return render_template(
-        "media_vault.html",
-        pools=pools,
-        shelf_cols=SHELF_COLS,
-        **build_vault_layout(all_tapes),
-    )
+    ctx = {
+        "pools": pools,
+        "shelf_cols": SHELF_COLS,
+        "vault_view": view,
+    }
+    if view == "expiry":
+        ctx["expiry_groups"] = build_expiry_groups(all_tapes)
+    else:
+        ctx.update(build_vault_layout(all_tapes))
 
-
-@bp.route("/vault/api/drive/<path:drive_name>/stats")
-def vault_drive_stats(drive_name):
-    return jsonify(fetch_drive_stats(drive_name))
+    return render_template("media_vault.html", **ctx)
 
 
 @bp.route("/vault/barcode/<path:volumename>.png")

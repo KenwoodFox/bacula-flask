@@ -275,6 +275,75 @@ td[data-percentage] {
   font-weight: normal;
 }
 
+.expiry-vault-section {
+  text-align: left;
+  max-width: 100%;
+}
+
+.expiry-intro {
+  color: #00aa00;
+  font-weight: normal;
+  font-size: 0.85rem;
+  margin: 0 0 1.25rem;
+  line-height: 1.4;
+}
+
+.expiry-intro code {
+  color: #0c0;
+}
+
+.expiry-intro-red {
+  color: red;
+}
+
+.expiry-year-group {
+  margin-bottom: 1.5rem;
+}
+
+.expiry-year-title {
+  text-align: left;
+  border-bottom: 2px solid #aa8800;
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.75rem;
+  color: #c9a800;
+}
+
+.expiry-shelf {
+  margin-bottom: 0.5rem;
+}
+
+.expiry-shelf .tape-cell.status-full,
+.expiry-shelf .tape-cell.status-f,
+.expiry-shelf .tape-cell.status-fu,
+.expiry-shelf .tape-cell.status-archive {
+  opacity: 1;
+  filter: none;
+  border-color: #335533;
+  background: #0a120a;
+  color: #88aa88;
+}
+
+.expiry-shelf .tape-cell.status-full:hover,
+.expiry-shelf .tape-cell.status-f:hover,
+.expiry-shelf .tape-cell.status-fu:hover,
+.expiry-shelf .tape-cell.status-archive:hover {
+  border-color: #557755;
+}
+
+.expiry-shelf .tape-cell.tape-in-changer {
+  opacity: 1;
+  filter: none;
+  background: #1a0000;
+  border-color: red;
+  color: #faa;
+  animation: flash 1s infinite;
+}
+
+.tape-hint-arrow {
+  color: #ff8888;
+  font-weight: bold;
+}
+
 .lib-cell {
   position: relative;
   min-width: 0;
@@ -319,17 +388,6 @@ td[data-percentage] {
 
 .lib-drive .tape-slot {
   color: #66ccff;
-}
-
-.drive-stats {
-  margin-top: 0.2rem;
-  padding: 0.2rem 0.25rem;
-  font-size: 0.55rem;
-  font-weight: normal;
-  line-height: 1.25;
-  color: #66ccff;
-  text-align: left;
-  word-break: break-word;
 }
 
 .volume-label-hero {
