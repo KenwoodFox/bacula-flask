@@ -2,6 +2,7 @@ import re
 
 from .db import get_connection
 from .expiry_layout import enrich_tape_expiry
+from .job_status_map import format_job_status, is_ok_job_status
 from .utils import human_readable_bytes, job_row_to_dict
 
 
@@ -78,13 +79,16 @@ def fetch_dashboard_jobs():
     result = []
     for row in jobs:
         total_bytes = row["total_bytes"] or 0
+        status = row["jobstatus"] or ""
         result.append(
             {
                 "name": row["name"],
                 "total_jobs": row["total_jobs"],
                 "total_files": row["total_files"],
                 "total_bytes": human_readable_bytes(total_bytes),
-                "job_status": row["jobstatus"],
+                "job_status": status,
+                "job_status_label": format_job_status(status),
+                "job_status_ok": is_ok_job_status(status),
                 "last_run_time": row["last_run_time"],
                 "percentage": (total_bytes / summary_bytes * 100) if summary_bytes else 0,
             }
@@ -106,6 +110,7 @@ def fetch_job_history(job_name, limit=1000):
                     j.jobfiles,
                     j.jobbytes,
                     j.jobstatus,
+                    j.purgedfiles,
                     COALESCE(
                         array_agg(DISTINCT m.volumename)
                             FILTER (WHERE m.volumename IS NOT NULL),
@@ -117,7 +122,7 @@ def fetch_job_history(job_name, limit=1000):
                 WHERE j.name = %s
                 GROUP BY
                     j.jobid, j.name, j.starttime, j.type, j.level,
-                    j.jobfiles, j.jobbytes, j.jobstatus
+                    j.jobfiles, j.jobbytes, j.jobstatus, j.purgedfiles
                 ORDER BY j.starttime DESC
                 LIMIT %s
                 """,

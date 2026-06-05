@@ -30,19 +30,22 @@
             </td>
         </tr>
         {% else %}
-        <tr>
+        <tr{% if job.purged %} class="job-purged"{% endif %}>
             <td>{{ job.job_id }}</td>
             <td>{{ job.start_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-            <td>{{ job.level }}</td>
+            <td title="{{ job.level }}">{{ job.level_label }}</td>
             <td>{{ job.job_files }}</td>
             <td>{{ job.job_bytes }}</td>
-            <td class="{% if job.job_status != 'T' %}flashing-error{% endif %}">
-                {{ job.job_status }}
+            <td class="{% if not job.purged and not job.job_status_ok %}flashing-error{% endif %}"
+                title="{{ job.job_status }}">
+                {{ job.job_status_label }}
             </td>
             <td>
+                {% if not job.purged %}
                 {% for volume in job.volumes %}
                 <a href="/volume/{{ volume }}">{{ volume }}</a>{% if not loop.last %}, {% endif %}
                 {% endfor %}
+                {% endif %}
             </td>
         </tr>
         {% endif %}

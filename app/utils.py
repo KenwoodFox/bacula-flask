@@ -1,3 +1,6 @@
+from .job_status_map import format_job_level, format_job_status, is_ok_job_status
+
+
 def human_readable_bytes(size_in_bytes):
     try:
         size_in_bytes = float(str(size_in_bytes).replace(",", ""))
@@ -19,18 +22,26 @@ def human_readable_bytes(size_in_bytes):
 
 
 def job_row_to_dict(row):
-    volumes = row.get("volumes") or []
+    purged = bool(row.get("purgedfiles"))
+    volumes = [] if purged else row.get("volumes") or []
     if isinstance(volumes, str):
         volumes = [volumes]
+
+    status = row.get("jobstatus") or ""
+    level = row.get("level") if row.get("level") is not None else ""
 
     return {
         "job_id": row["jobid"],
         "name": row["name"],
         "start_time": row["starttime"],
         "type": row.get("type") or "",
-        "level": row.get("level") if row.get("level") is not None else "",
+        "level": level,
+        "level_label": format_job_level(level),
         "job_files": row.get("jobfiles") or 0,
         "job_bytes": human_readable_bytes(row.get("jobbytes") or 0),
-        "job_status": row.get("jobstatus") or "",
+        "job_status": status,
+        "job_status_label": format_job_status(status),
+        "job_status_ok": is_ok_job_status(status),
+        "purged": purged,
         "volumes": list(volumes),
     }

@@ -39,6 +39,17 @@ a:hover {
   text-decoration: underline;
 }
 
+tr.job-purged td {
+  text-decoration: line-through;
+  color: #666;
+  opacity: 0.75;
+}
+
+tr.job-purged a {
+  color: #666;
+  pointer-events: none;
+}
+
 /* Flashing warning */
 .flashing-error {
   animation: flash 1s infinite;
