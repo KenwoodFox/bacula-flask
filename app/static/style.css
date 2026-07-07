@@ -151,6 +151,7 @@ td[data-percentage] {
 }
 
 .tape-cell {
+  position: relative;
   container-type: inline-size;
   display: grid;
   grid-template-rows: 3.1rem 1fr auto;
@@ -166,6 +167,24 @@ td[data-percentage] {
 
 .tape-cell:hover {
   border-color: #557755;
+}
+
+.tape-error-bubble {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  min-width: 2.15rem;
+  height: 2.15rem;
+  padding: 0 0.2rem;
+  background: #c00;
+  color: #fff;
+  font-size: 2.0rem;
+  line-height: 2.15rem;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(103, 4, 4, 0.85);
+  pointer-events: none;
 }
 
 .tape-barcode {
@@ -319,6 +338,20 @@ td[data-percentage] {
   color: #c9a800;
 }
 
+.expiry-archived-title {
+  text-align: left;
+  border-bottom: 2px solid #6688aa;
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.75rem;
+  color: #99bbee;
+}
+
+.expiry-archived-group {
+  margin-top: 2rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #335533;
+}
+
 .expiry-shelf {
   margin-bottom: 0.5rem;
 }
@@ -326,7 +359,8 @@ td[data-percentage] {
 .expiry-shelf .tape-cell.status-full,
 .expiry-shelf .tape-cell.status-f,
 .expiry-shelf .tape-cell.status-fu,
-.expiry-shelf .tape-cell.status-archive {
+.expiry-shelf .tape-cell.status-archive,
+.expiry-shelf .tape-cell.status-read-only {
   opacity: 1;
   filter: none;
   border-color: #335533;
@@ -337,7 +371,8 @@ td[data-percentage] {
 .expiry-shelf .tape-cell.status-full:hover,
 .expiry-shelf .tape-cell.status-f:hover,
 .expiry-shelf .tape-cell.status-fu:hover,
-.expiry-shelf .tape-cell.status-archive:hover {
+.expiry-shelf .tape-cell.status-archive:hover,
+.expiry-shelf .tape-cell.status-read-only:hover {
   border-color: #557755;
 }
 

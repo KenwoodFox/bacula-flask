@@ -3,19 +3,7 @@
 {% block title %}Tape Vault{% endblock %}
 
 {% block content %}
-<nav class="site-nav">
-    <a href="{{ url_for('main.index') }}">Jobs</a>
-    <span class="nav-sep">|</span>
-    {% if vault_view == 'expiry' %}
-    <a href="{{ url_for('main.media_vault', view='layout') }}">Vault</a>
-  <span class="nav-sep">|</span>
-    <strong>Expiry</strong>
-    {% else %}
-    <strong>Vault</strong>
-    <span class="nav-sep">|</span>
-    <a href="{{ url_for('main.media_vault', view='expiry') }}">Expiry</a>
-    {% endif %}
-</nav>
+{% include "_site_nav.html" %}
 
 <h1>Tape Vault</h1>
 

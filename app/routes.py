@@ -78,7 +78,7 @@ def media_vault():
         "vault_view": view,
     }
     if view == "expiry":
-        ctx["expiry_groups"] = build_expiry_groups(all_tapes)
+        ctx.update(build_expiry_groups(all_tapes))
     else:
         ctx.update(build_vault_layout(all_tapes))
 

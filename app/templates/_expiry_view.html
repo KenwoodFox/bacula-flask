@@ -18,6 +18,20 @@
         </div>
     </section>
     {% else %}
-    <p class="pool-empty">No full or archive volumes with a computable expiry date.</p>
+    {% if not archived_tapes %}
+    <p class="pool-empty">No full volumes with a computable expiry date.</p>
+    {% endif %}
     {% endfor %}
+    {% if archived_tapes %}
+    <section class="expiry-year-group expiry-archived-group">
+        <h2 class="expiry-archived-title">Archived <span class="pool-count">({{ archived_tapes|length }})</span></h2>
+        <div class="tape-shelf expiry-shelf" style="--shelf-cols: {{ shelf_cols }};">
+            {% for tape in archived_tapes %}
+            {% with expiry_footer=true %}
+            {% include "_tape_cell.html" %}
+            {% endwith %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
 </section>

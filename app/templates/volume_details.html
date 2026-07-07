@@ -3,11 +3,7 @@
 {% block title %}Volume Details - {{ volume_id }}{% endblock %}
 
 {% block content %}
-<nav class="site-nav">
-    <a href="{{ url_for('main.index') }}">Jobs</a>
-    <span class="nav-sep">|</span>
-    <a href="{{ url_for('main.media_vault') }}">Vault</a>
-</nav>
+{% include "_site_nav.html" %}
 
 <div class="volume-label-hero">
     <img class="volume-label-img"

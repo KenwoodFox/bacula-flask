@@ -3,11 +3,7 @@
 {% block title %}Bacula Jobs{% endblock %}
 
 {% block content %}
-<nav class="site-nav">
-    <strong>Jobs</strong>
-    <span class="nav-sep">|</span>
-    <a href="{{ url_for('main.media_vault') }}">Vault</a>
-</nav>
+{% include "_site_nav.html" %}
 
 <h1>Bacula Job Status and History</h1>
 <table border="2">

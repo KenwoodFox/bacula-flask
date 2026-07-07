@@ -1,0 +1,20 @@
+<nav class="site-nav">
+    {% set on_expiry = request.endpoint == 'main.media_vault' and request.args.get('view') == 'expiry' %}
+    {% if request.endpoint == 'main.index' %}
+    <strong>Jobs</strong>
+    {% else %}
+    <a href="{{ url_for('main.index') }}">Jobs</a>
+    {% endif %}
+    <span class="nav-sep">|</span>
+    {% if request.endpoint == 'main.media_vault' and not on_expiry %}
+    <strong>Vault</strong>
+    {% else %}
+    <a href="{{ url_for('main.media_vault', view='layout') }}">Vault</a>
+    {% endif %}
+    <span class="nav-sep">|</span>
+    {% if on_expiry %}
+    <strong>Expiry</strong>
+    {% else %}
+    <a href="{{ url_for('main.media_vault', view='expiry') }}">Expiry</a>
+    {% endif %}
+</nav>
