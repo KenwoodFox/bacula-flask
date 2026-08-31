@@ -1,0 +1,26 @@
+# Filtered/hidden jobs!
+# I just didn't want them cluttering up, hide_after_days
+# is just in case i want to make one pop back up later
+
+hide_after_days: 7
+
+jobs:
+  - Backup-Jose
+  - Backup-Aidan
+  - Backup-Aaron
+  - Backup-TGCFabian
+  - Backup-Robotics
+  - Backup-Jason
+  - Release Tape
+  - Backup-Julio
+  - Backup-YouTube
+  - Backup-Chris
+  - Backup-Caleb
+  - Archive-Travis
+  - Archive-Zach
+  - Archive-Caleb
+  - RestoreFoles
+  - Backup-FireBN
+  - Backup-Evelynn
+  - MyFirstJob
+  - RestoreFiles

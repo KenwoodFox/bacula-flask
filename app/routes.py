@@ -12,6 +12,7 @@ from .catalog import (
     fetch_volumes_for_labels,
 )
 from .expiry_layout import build_expiry_groups
+from .hidden_jobs import filter_dashboard_jobs
 from .library_layout import build_vault_layout
 from .labels import (
     build_tape_label,
@@ -52,7 +53,7 @@ def login():
 
 @bp.route("/")
 def index():
-    jobs = fetch_dashboard_jobs()
+    jobs = filter_dashboard_jobs(fetch_dashboard_jobs())
 
     for job in jobs:
         if job.get("last_run_time"):
